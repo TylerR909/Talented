@@ -1,4 +1,4 @@
--- Talented Beta Build B-0.1
+-- Talented 0.1 - Prototype
 
 --[[ LOAD_PARAMETERS
 Register when it opens
@@ -8,16 +8,29 @@ Register when it opens
     Destroy Button on Exit
 --]]
 
+--TODO: How to delete builds?
 
 --[[ INITIALIZE
     Load data into table?
     create dropdown frame/button
     lock frame to top left corner of talent frame
-    drop date into table
+    drop table data into dropdown frame
 --]]
 
 
-
+--[[ SAVE_ACTIVE_BUILD
+    -- User clicked save button and that button called this function
+    -- A full build has a Class, Specialization, Talent Pane # (Talents vs PvP Talents), Build Code (7 digit string), NAME, Active State?
+    GetActiveBuild()
+    get class
+    get specialization
+    get talent pane
+    Prompt user for string name
+    if cancel or nil, return/end
+    if name already exists, --Overwrite/Deny/Handle--
+    push new object to table
+    print update? "name saved for future reference."
+--]]
 
 
 

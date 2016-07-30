@@ -1,0 +1,6 @@
+## Interface: 70300
+## Version: 0.1 - Prototype
+## Title: Talented
+## Notes: Save talent builds and load them at will.
+## Author: TylerR909
+## SavedVariables: TalentedDB

@@ -4,3 +4,6 @@
 ## Notes: Save talent builds and load them at will.
 ## Author: TylerR909
 ## SavedVariables: TalentedDB
+
+Talented.xml
+Talented.lua

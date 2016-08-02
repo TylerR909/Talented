@@ -32,13 +32,28 @@ Register when it opens
     print update? "name saved for future reference."
 --]]
 
+local function SaveActiveBuild()
+    local build = {}
+    build.name = GetUnitName("player")
+    local tmp,_,_ = UnitClass("player")
+    build.class = tmp
+    build.specialization = GetSpecialization()
+
+    --build_name
+    --pane currently being viewed
+    --Somehow lock variable on to dropdown/button and pass that around?
+
+    build.code = GetActiveBuild()
+    build.active = true
+    TalentDB.insert(build)
+end
 
 
 local function ApplyBuild(build)
     for i = 1, GetMaxTalentTier() do
         local s = build:sub(i,i)
         --TODO: error checking
-        LearnTakents(GetTalentInfo(i,s,1))
+        LearnTalents(GetTalentInfo(i,s,1))
     end
 end
 

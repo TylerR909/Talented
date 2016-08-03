@@ -4,6 +4,8 @@
 ## Notes: Save talent builds and load them at will.
 ## Author: TylerR909
 ## SavedVariables: TalentedDB
+## LoadOnDemand: 1
+## LoadWith: Blizzard_TalentUI
 
 Talented.xml
 Talented.lua

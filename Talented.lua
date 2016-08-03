@@ -9,7 +9,17 @@ Register when it opens
 --]]
 
 --TODO: How to delete builds?
+function testFrames()
+    local btn = CreateFrame("Button","TestFrame",PlayerTalentFrameTalents,"UIPanelButtonTemplate")
+    btn:SetWidth(100)
+    btn:SetHeight(20)
+    btn:SetPoint("BOTTOMRIGHT",0,-21)
+    btn:SetScript("OnClick",function(self) self:Hide() print("I'm shy") end)
+end
 
+function printMyTestMessage()
+    print("MyTestMessage")
+end
 --[[ INITIALIZE
     Load data into table?
     create dropdown frame/button
@@ -28,8 +38,7 @@ Register when it opens
     Prompt user for string name
     if cancel or nil, return/end
     if name already exists, --Overwrite/Deny/Handle--
-    push new object to table
-    print update? "name saved for future reference."
+    push new object to table print update? "name saved for future reference."
 --]]
 
 local function SaveActiveBuild()

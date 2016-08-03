@@ -1,34 +1,148 @@
-<Ui xmlns=“http://www.blizzard.com/wow/ui/“
-        xmlns:xsi=“http://www.w3.org/2001/XMLSchema-instance“
-        xsi:schemaLocation=“http://www.blizzard.com/wow/ui/
-        http://wowprogramming.com/FrameXML/UI.xsd“>
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
 
-<Frame name="Talented_Input" parent="UIParent" frameStrata="DIALOG">
-    <Size x="200" y="150" />
+<Frame name="Talented_Popup" parent="UIParent" hidden="true">
+    <!--UIPanelDialogTemplate!-->
+    <!--GlowBoxTemplate!-->
+    <!--BasicFrameTemplate!-->
+    <!--HelpPlateBox!-->
+
+    <Size x="300" y="150" />
     <Anchors>
-        <Anchor point="Center" relativePoint="Center" relativeTo="UIParent" />
+        <Anchor point="CENTER" />
     </Anchors>
+
     <Layers>
-        <Layer level="Background" setAllPoints="true">
-            <Color r="1.0" g="1.0" b="0.0" a="0.5" />
+        <Layer level="BACKGROUND">
+            <Texture>
+                <Color r="0" g="0" b="0" a="0.9" />
+            </Texture>
+        </Layer>
+        <Layer level="BORDER">
+            <EdgeSize val="16" />
+
+        </Layer>
+        <Layer level="OVERLAY">
+            <FontString name="$parent_Title" parentKey="title" inherits="ChatFontNormal" text="Talented">
+                <Anchors>
+                    <Anchor point="TOP">
+                        <Offset x="0" y="-18" />
+                    </Anchor>
+                </Anchors>
+            </FontString>
         </Layer>
     </Layers>
+
     <Scripts>
-        <OnEnterPressed function="self:Hide()" />
-        <OnEscapePressed function="self:Hide()" />
+        <Onload>
+            print("Loaded");
+        </Onload>
     </Scripts>
 
-    <EditBox name="$parent_Box" inherits="InputBoxTemplate">
-        <Size x="250" y="20" />
-        <Anchors>
-            <Anchor point="CENTER"/>
-        </Anchors>
-        <Scripts>
-            <OnLoad function="self:SetAutoFocus(true)"/>
-        </Scripts>
-        <FontString inherits="GameFontHighlight" />
-    </EditBox>
+    <Frames>
+
+<!-- EDIT BOX !-->
+        <EditBox name="$parentInput" letters="25">
+            <Size x="260" y="20" />
+            <Anchors>
+                <Anchor point="CENTER" />
+            </Anchors>
+
+            <Layers>
+                <Layer level="BACKGROUND">
+                    <Texture>
+                        <Color r="0.1" g="0.1" b="0.1" a="1.0" />
+                    </Texture>
+                </Layer>
+            </Layers>
+            <FontString inherits="ChatFontNormal"/>
+
+            <Scripts>
+                <OnEscapePressed>
+                    HideParentPanel(self)
+                </OnEscapePressed>
+                <OnEnterPressed>
+                    print(self:GetText())
+                </OnEnterPressed>
+            </Scripts>
+        </EditBox>
+
+
+
+<!-- BUTTON !-->
+        <Button name="$parentButton" text="Save Build">
+            <!--UIPanelButtonTemplate !-->
+
+            <ButtonText>
+                <Anchors>
+                    <Anchor point="CENTER" />
+                </Anchors>
+            </ButtonText>
+
+            <NormalFont style="ChatFontNormal" />
+            <NormalTexture name="$parentBG">
+                <Color r="0.4" g="0.4" b="0.4" a="0.4" />
+            </NormalTexture>
+
+            <Layers>
+                <Layer level="BACKGROUND">
+                    <Texture>
+                        <Color r="0.2" g="0.2" b="0.2" a="0.8" />
+                    </Texture>
+                </Layer>
+            </Layers>
+            <Size x="234" y="21" />
+            <Anchors>
+                <Anchor point="BOTTOM">
+                    <Offset y="15" />
+                </Anchor>
+            </Anchors>
+            <Scripts>
+                <OnClick>
+                    HideParentPanel(self);
+                </OnClick>
+            </Scripts>
+        </Button>
+    </Frames>
+
 </Frame>
 
+
+<!-- SAVED BUILDS DROPDOWN BOX !-->
+ <Frame name="TalentedSavedBuildsDropdownTemplate" inherits="UIDropDownMenuTemplate" virtual="true" hidden="true">
+     <Anchors>
+        <Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT">
+            <Offset x="-110" y="0" />
+        </Anchor>
+     </Anchors>
+ </Frame>
+
+
+<Frame name="TalentedSavedBuildsDropdownPVE" inherits="TalentedSavedBuildsDropdownTemplate" parent="PlayerTalentFrameTalents" hidden="false">
+    <Scripts>
+        <OnLoad>
+            print("PvE Button Loaded")
+        </OnLoad>
+    </Scripts>
+</Frame>
+
+<Frame name="TalentedSavedBuildsDropdownPvP" inherits="TalentedSavedBuildsDropdownTemplate" parent="PlayerTalentFramePVPTalents" hidden="false">
+    <Anchors>
+        <Anchor point="BOTTOMRIGHT">
+            <Offset x="-108" y="-29" />
+        </Anchor>
+    </Anchors>
+    <Scripts>
+        <OnLoad>
+            print("PvP Button Loaded")
+        </OnLoad>
+    </Scripts>
+</Frame>
+
+
+
+
+
+    <!-- PlayerTalentFrameTalents !-->
+    <!-- PlayerTalentFramePVPTalents!-->
 
 </Ui>

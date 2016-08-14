@@ -18,6 +18,7 @@ local Talented_ClassColors = {
 }
 
 --TODO: Add delete GUI for "All this char, all this class, all"
+--TODO: Make slash commands usable before Blizzard_TalentUI loads
 
 
 
@@ -115,7 +116,6 @@ end
 
 
 function TalentedUpdateButtonText(self,build_code)
-    print("Updating button text.")
     self.TimeSinceLastUpdate = 0;
     UIDropDownMenu_SetSelectedValue(self,build_code)
     --If I can figure out how to get through this, I can probably figure out how to centralize the Init
@@ -138,7 +138,6 @@ end
 
 
 function TalentedInitDropdown(self,mode_key)
-    print(mode_key.." initializing.")
     local dat = {}
     local info
 

@@ -9,3 +9,4 @@
 
 Talented.xml
 Talented.lua
+TalentedSlashCommands.lua

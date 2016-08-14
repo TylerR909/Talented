@@ -1,104 +1,80 @@
 -- Talented 0.1 - Prototype
 
 local Talented = "|cff00e0ffTalented|r"
-Talented_UpdateInterval = .3; --1/4 of a second TODO: Play with this value until it "Feels" right, hopefully up to 0.5sec
-
-testInfo = {}
--- each save has a Build Name, Player Name, Class Name, Specialization, Build Code, Active State, PvE/PvP
-testInfo[1] = {
-    name = "Ones",
-    class = "Warlock",
-    spec = 3,
-    code = "1111111",
-    active = false,
-    pname = "Imamagejk",
-    PvE = true
-}
-testInfo[2] = {
-    name = "Twos",
-    class = "Warlock",
-    spec = 3,
-    code = "2222212",
-    active = false,
-    pname = "Imamagejk",
-    PvE = true
-}
-testInfo[3] = {
-    name = "Single-target",
-    class = "Warlock",
-    spec = 3,
-    code = "2111113",
-    active = true,
-    pname = "Imamagejk",
-    PvE = true
-}
-testInfo[4] = {
-    name = "Questing",
-    class = "Warlock",
-    spec = 3,
-    code = "3111113",
-    active = false,
-    pname = "Imamagejk",
-    PvE = true
-}
-testInfo[5] = {
-    name = "Dungeon AoE",
-    class = "Warlock",
-    spec = 3,
-    code = "3212112",
-    active = false,
-    pname = "Imamagejk",
-    PvE = true
+local Talented_UpdateInterval = 0.3; --1/4 of a second TODO: Play with this value until it "Feels" right, hopefully up to 0.5sec
+local Talented_ClassColors = {
+    WARRIOR = "|cffc79c6e",
+    PALADIN = "|cfff58cba",
+    HUNTER = "|cffabd473",
+    ROGUE = "|cfffff569",
+    PRIEST = "|cffffffff",
+    DEATHKNIGHT = "|cffc41f3b",
+    SHAMAN = "|cff0070de",
+    MAGE = "|cff69ccf0",
+    WARLOCK = "|cff9482c9",
+    MONK = "|cff00ff96",
+    DRUID = "|cffff7d0a",
+    DEMONHUNTER = "|cffa330c9"
 }
 
---TODO: How to delete builds?
-function testFrames()
-    local btn = CreateFrame("Button","TestFrame",PlayerTalentFrameTalents,"UIPanelButtonTemplate")
-    btn:SetWidth(100)
-    btn:SetHeight(20)
-    btn:SetPoint("BOTTOMRIGHT",0,-21)
-    btn:SetScript("OnClick",function(self) self:Hide() print("I'm shy") end)
-end
-
---[[ INITIALIZE
-    Load data into table?
-    create dropdown frame/button
-    lock frame to top left corner of talent frame
-    drop table data into dropdown frame
---]]
+--TODO: Add delete GUI for "All this char, all this class, all"
 
 
---[[ SAVE_ACTIVE_BUILD
-    -- User clicked save button and that button called this function
-    -- A full build has a Class, Specialization, Talent Pane # (Talents vs PvP Talents), Build Code (7 digit string), NAME, Active State?
-    GetActiveBuild()
-    get class
-    get specialization
-    get talent pane
-    Prompt user for string name
-    if cancel or nil, return/end
-    if name already exists, --Overwrite/Deny/Handle--
-    push new object to table print update? "name saved for future reference."
---]]
 
-local function SaveActiveBuild(build_code,mode_key) -- mode_key will be "PvE" or "PvP" to set a bool
+function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key will be "PvE" or "PvP" to set a bool
+    --TODO: Parse build_name to make sure it's not too long, has bad data, etc
     local build = {}
 
-    build.name = GetUnitName("player")
+    build.player_name = GetUnitName("player")
     local tmp,_,_ = UnitClass("player")
     build.class = tmp
-    build.specialization = GetSpecialization()
-    if mode_key == "PvE" then build.pve = true else build.pve = false end
+    build.spec = GetSpecialization()
+    build.mode = mode_key
     build.code = build_code
-    build.active = true
-    --Call the editbox and gather a build name
+    build.build_name = build_name
     --TODO: The editbox would be the place to "Ignore" rows and sweep through the string to zero out values
-    TalentDB.insert(build)
+    TalentedCommitBuild(build)
 end
+
+
+
+function TalentedCommitBuild(build)
+    if TalentedDB == nil then TalentedDB = {} end
+    local current
+
+    for i = 1,#TalentedDB do
+        current = TalentedDB[i]
+        if current.player_name == build.player_name and
+           current.spec == build.spec and
+           current.mode == build.mode
+        then
+            if current.code == build.code and current.build_name == build.build_name then do
+                print(Talented..": You've already saved that build.")
+                return
+                end
+            elseif current.code == build.code then do
+                print(Talented..": Build exists in table. Updating name to "..build.build_name)
+                current.build_name = build.build_name
+                return -- Item exists in table. Update data and do not commit.
+                end
+            elseif current.build_name == build.build_name then do
+                print(Talented..": Build name already exists in table as "..current.build_name)
+                current.code = build.code
+                print(Talented..": Updating the build with new saved spec.")
+                return -- Item exists in table. Update data and do not commit.
+                end
+            end
+        end
+    end
+
+    --Checked the table and no existing code or build name exists. Commiting new table.
+    tinsert(TalentedDB,build)
+end
+
 
 
 local function ApplyBuild(build,mode_key)
-    if mode_key == "PvE" then mode_key = 1 else if mode_key == "PvP" then mode_key = 2 end end
+    if mode_key == "PvE" then mode_key = 1 elseif mode_key == "PvP" then mode_key = 2 end
     for i = 1, GetMaxTalentTier() do
         local s = build:sub(i,i)
         --TODO: error checking
@@ -107,7 +83,8 @@ local function ApplyBuild(build,mode_key)
 end
 
 
-local function GetActiveBuild()
+
+function TalentedGetActiveBuild()
     local active_spec = ""
 
     for row = 1,GetMaxTalentTier() do
@@ -120,96 +97,68 @@ local function GetActiveBuild()
     return active_spec
 end
 
-function UpdateButtonText_OnUpdate(self,elapsed)
+
+
+function TalentedUpdateButtonText_OnUpdate(self,elapsed,mode)
+    --TODO: Add PvP Functionality. Update args list? So much branching...
     self.TimeSinceLastUpdate = self.TimeSinceLastUpdate + elapsed;
 
     if (self.TimeSinceLastUpdate > Talented_UpdateInterval) then
-        local value = GetActiveBuild();
-        UIDropDownMenu_SetSelectedValue(self,value)
-
-        self.TimeSinceLastUpdate = 0
+        local value
+        if (mode == "PvE") then value = TalentedGetActiveBuild() elseif (mode == "PvP") then value = nil end
+        TalentedUpdateButtonText(self,value)
     end
     --TalentedSavedBuildsDropdownPvE
     --TalentedSavedBuildsDropdownPvP
 end
 
-function UpdateButtonText(arg1)
+
+
+function TalentedUpdateButtonText(self,build_code)
+    print("Updating button text.")
+    self.TimeSinceLastUpdate = 0;
+    UIDropDownMenu_SetSelectedValue(self,build_code)
+    --If I can figure out how to get through this, I can probably figure out how to centralize the Init
+    --I think maybe the frame, or the things being passed with frame (arg1,arg2...) aren't being passed
+    --and the UIDropDownMenu stuff uses those to function properly
 end
 
 
 
-function TalentedInitDropdownPvE(self,_,mode_key)
-    mode_key = mode_key or "PvE"
-    print("|cff00e0ffStarting|r PvE init...")
-    print("Mode key = "..mode_key)
+function TalentedInitDropdownPvE(self)
+    TalentedInitDropdown(self,"PvE")
+end
 
+
+
+function TalentedInitDropdownPvP(self)
+    TalentedInitDropdown(self,"PvP")
+end
+
+
+
+function TalentedInitDropdown(self,mode_key)
+    print(mode_key.." initializing.")
     local dat = {}
     local info
 
-    for i = 1,#testInfo do
-        info = testInfo[i]
+    if TalentedDB then
+        for i = 1,#TalentedDB do
+            info = TalentedDB[i]
 
-        if (info.pname == GetUnitName("player") and
-           info.class == UnitClass("player") and --Redundant unless there's another toon with a diff class on another server maybe
-           info.spec == GetSpecialization()) then
-                dat.text = info.name
+            if (info.player_name == GetUnitName("player") and
+                    info.class == UnitClass("player") and --Redundant unless there's another toon with a diff class on another server maybe
+                    info.spec == GetSpecialization() and
+                    info.mode == mode_key) then
+                dat.text = info.build_name
                 dat.value = info.code
-                dat.arg1 = "PvE"
+                dat.arg1 = mode_key
                 dat.func = TalentedSelectBuild --Change to SelectBuild after bug-fixing
-                local active = (GetActiveBuild() == info.code)
+                local active = (TalentedGetActiveBuild() == info.code)
                 dat.checked = active
-
                 UIDropDownMenu_AddButton(dat);
 
                 if (active) then UIDropDownMenu_SetText(self,info.name) end
-        end
-    end
-
-    --Add button to bottom to save currently-active build
-    dat.text = "Add Active Build"
-    dat.colorCode = "|cff00ff00"
-    dat.value = GetActiveBuild()
-    dat.arg1 = "PvE"
-    dat.func = TalentedSaveActiveBuild
-    dat.notCheckable = true
-    dat.justifyH = "CENTER"
-    --dat.icon = "Spell_chargepositive.png"
-    UIDropDownMenu_AddButton(dat)
-end
-
-function TalentedInitDropdownPvP(self,level)
-    TalentedInitDropdownPvE(self,level,"PvP")
-end
-
---[[ -PvP and -PvE wrapper functions should call this
--- can't figure out how to pass the frame in? PvE is working with source-code
--- when pasted in the wrapper, but when PvP acts as wrapped and calls the same code, it doesn't happen
--- I'd love to make this a local function but it may be too protected
-function TalentedInitDropdown(self,_,mode_key)
-    mode_key = mode_key or "PvE"
-    print("Starting PvE init...")
-    print("Mode key = "..mode_key)
-
-    local dat = {}
-    local info
-
-    for i = 1,#testInfo do
-        info = testInfo[i]
-
-        if (info.pname == GetUnitName("player") and
-                info.class == UnitClass("player") and --Redundant unless there's another toon with a diff class on another server maybe
-                info.spec == GetSpecialization()) then
-            dat.text = info.name
-            dat.value = info.code
-            dat.arg1 = "PvE"
-            dat.func = TalentedSelectBuild --Change to SelectBuild after bug-fixing
-            local active = (GetActiveBuild() == info.code)
-            dat.checked = active
-
-            UIDropDownMenu_AddButton(dat);
-
-            if (info.checked == true) then
-                UIDropDownMenu_SetSelectedName(self,info.name)
             end
         end
     end
@@ -217,20 +166,16 @@ function TalentedInitDropdown(self,_,mode_key)
     --Add button to bottom to save currently-active build
     dat.text = "Add Active Build"
     dat.colorCode = "|cff00ff00"
-    dat.value = GetActiveBuild()
-    dat.arg1 = "PvE"
-    dat.func = TalentedSaveActiveBuild
+    dat.value = TalentedGetActiveBuild()
+    dat.arg1 = mode_key
+    dat.func = TalentedPrepActiveBuild
     dat.notCheckable = true
     dat.justifyH = "CENTER"
     --dat.icon = "Spell_chargepositive.png"
     UIDropDownMenu_AddButton(dat)
 end
---]]
 
-function PrintTest(self)
-    print("We did it!")
-    print(self.value)
-end
+
 
 function TalentedSelectBuild(self,arg1)
     if InCombatLockdown() == 1 then
@@ -239,18 +184,33 @@ function TalentedSelectBuild(self,arg1)
     end
 
     ApplyBuild(self.value,arg1)
-    --UpdateButtonText(self.parent(),nil,arg1)
-    UpdateButtonText(arg1)
+
+    if arg1=="PvE" then
+        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,self.value) -- frame name and value to search for/set
+    elseif arg1=="PvP" then
+        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvP,self.value)
+    end
 end
 
-function TalentedSaveActiveBuild(self,arg1)
+
+
+function TalentedPrepActiveBuild(self,mode_key) --mode_key should be PvP or PvE
     if InCombatLockdown() == 1 then
         print(Talented..": can't save build while in combat.")
         return
     end
 
-    SaveActiveBuild(self.value,arg1)
+    --TODO InCombat blocking isn't working
+
+    --Show TalentedPopup and hand it self.value (build code)
+    TalentedPopup:Show()
+    TalentedPopupButton.mode_key = mode_key
+    TalentedPopupButton.build_code = self.value
+    --A frame will pop up. When the user clicks save, the OnClick handler
+    --will fire TalentedSaveActiveBuild with EditBox and Ignore-information
 end
+
+
 
 --[[ OnClick seems deprecated with this implementation, and as such these are no longer called or needed
 function TalentedDropdownMenuButton_OnClickPvP()

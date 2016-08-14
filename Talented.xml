@@ -2,7 +2,7 @@
 
 <Script file="Talented.lua" />
 
-<Frame name="Talented_Popup" parent="UIParent" hidden="true">
+<Frame name="TalentedPopup" parent="UIParent" hidden="true">
     <!--UIPanelDialogTemplate!-->
     <!--GlowBoxTemplate!-->
     <!--BasicFrameTemplate!-->
@@ -36,14 +36,13 @@
 
     <Scripts>
         <Onload>
-            print("Loaded");
         </Onload>
     </Scripts>
 
     <Frames>
 
 <!-- EDIT BOX !-->
-        <EditBox name="$parentInput" letters="25">
+        <EditBox name="$parentInput" letters="25" autoFocus="false">
             <Size x="260" y="20" />
             <Anchors>
                 <Anchor point="CENTER" />
@@ -63,8 +62,16 @@
                     HideParentPanel(self)
                 </OnEscapePressed>
                 <OnEnterPressed>
-                    print(self:GetText())
+                    self:ClearFocus()
                 </OnEnterPressed>
+                <OnShow>
+                    self:SetText("New build name...")
+                    self:HighlightText()
+                    self:SetFocus()
+                </OnShow>
+                <OnHide>
+                    self:SetText("")
+                </OnHide>
             </Scripts>
         </EditBox>
 
@@ -99,7 +106,12 @@
                 </Anchor>
             </Anchors>
             <Scripts>
+                <OnLoad>
+                    self.mode_key = nil
+                    self.build_code = nil
+                </OnLoad>
                 <OnClick>
+                    TalentedSaveActiveBuild(self.build_code,self.mode_key,TalentedPopupInput:GetText())
                     HideParentPanel(self);
                 </OnClick>
             </Scripts>
@@ -128,17 +140,21 @@
 
     <Scripts>
         <OnLoad>
+            self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
             UIDropDownMenu_Initialize(self,TalentedInitDropdownPvE);
-            print("PvE Button loaded...");
             self.TimeSinceLastUpdate = 0;
         </OnLoad>
         <OnUpdate>
-            UpdateButtonText_OnUpdate(self,elapsed)
+            TalentedUpdateButtonText_OnUpdate(self,elapsed,"PvE")
         </OnUpdate>
+        <OnEvent>
+            local id = select(1,...)
+            if id == "player" then UIDropDownMenu_Initialize(self,TalentedInitDropdownPvE) end
+        </OnEvent>
     </Scripts>
 </Button>
 
-<Button name="TalentedSavedBuildsDropdownPvP" inherits="UIDropDOwnMenuTemplate" parent="PlayerTalentFramePVPTalents">
+<Button name="TalentedSavedBuildsDropdownPvP" inherits="UIDropDownMenuTemplate" parent="PlayerTalentFramePVPTalents">
     <Anchors>
         <Anchor point="BOTTOMRIGHT">
             <Offset x="-108" y="-29" />
@@ -147,9 +163,17 @@
 
     <Scripts>
         <OnLoad>
-            UIDropdownMenu_Initialize(self, TalentedInitDropdownPvP)
-            print("PvP Button loaded...")
+            self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+            UIDropDownMenu_Initialize(self,TalentedInitDropdownPvP)
+            self.TimeSinceLastUpdate = 0;
         </OnLoad>
+        <OnUpdate>
+            TalentedUpdateButtonText_OnUpdate(self,elapsed,"PvP")
+        </OnUpdate>
+        <OnEvent>
+            local id=select(1,...)
+            if id == "player" then UIDropDownMenu_Initialize(self,TalentedInitDropdownPvP) end
+        </OnEvent>
 
     </Scripts>
 </Button>

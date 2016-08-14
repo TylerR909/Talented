@@ -140,17 +140,12 @@
 
     <Scripts>
         <OnLoad>
-            self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
             UIDropDownMenu_Initialize(self,TalentedInitDropdownPvE);
             self.TimeSinceLastUpdate = 0;
         </OnLoad>
         <OnUpdate>
             TalentedUpdateButtonText_OnUpdate(self,elapsed,"PvE")
         </OnUpdate>
-        <OnEvent>
-            local id = select(1,...)
-            if id == "player" then UIDropDownMenu_Initialize(self,TalentedInitDropdownPvE) end
-        </OnEvent>
     </Scripts>
 </Button>
 
@@ -163,17 +158,12 @@
 
     <Scripts>
         <OnLoad>
-            self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
             UIDropDownMenu_Initialize(self,TalentedInitDropdownPvP)
             self.TimeSinceLastUpdate = 0;
         </OnLoad>
         <OnUpdate>
             TalentedUpdateButtonText_OnUpdate(self,elapsed,"PvP")
         </OnUpdate>
-        <OnEvent>
-            local id=select(1,...)
-            if id == "player" then UIDropDownMenu_Initialize(self,TalentedInitDropdownPvP) end
-        </OnEvent>
 
     </Scripts>
 </Button>

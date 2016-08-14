@@ -1,4 +1,4 @@
--- Talented 0.1 - Prototype
+-- Talented 0.9 - Working Prototype
 
 local Talented = "|cff00e0ffTalented|r"
 local Talented_UpdateInterval = 0.3; --1/4 of a second TODO: Play with this value until it "Feels" right, hopefully up to 0.5sec
@@ -19,7 +19,8 @@ local Talented_ClassColors = {
 
 --TODO: Add delete GUI for "All this char, all this class, all"
 --TODO: Make slash commands usable before Blizzard_TalentUI loads
-
+--TODO: Move frame up to top third of screen
+--TODO: Fix button text update when adding (and removing?) builds
 
 
 function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key will be "PvE" or "PvP" to set a bool

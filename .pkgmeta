@@ -1,4 +1,4 @@
-package-as:Talented
+package-as: Talented
 
 ignore:
    - Screenshots # ignore screenshots folder

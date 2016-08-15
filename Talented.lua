@@ -168,7 +168,7 @@ function TalentedInitDropdown(self,mode_key)
     end
 
     --Add button to bottom to save currently-active build
-    dat.text = "Add Active Build"
+    dat.text = "Save Active Build"
     dat.colorCode = "|cff00ff00"
     dat.value = TalentedGetActiveBuild()
     dat.arg1 = mode_key
@@ -211,19 +211,5 @@ function TalentedPrepActiveBuild(self,mode_key) --mode_key should be PvP or PvE
     TalentedPopupButton.mode_key = mode_key
     TalentedPopupButton.build_code = self.value
     --A frame will pop up. When the user clicks save, the OnClick handler
-    --will fire TalentedSaveActiveBuild with EditBox and Ignore-information
+    --will fire TalentedSaveActiveBuild with EditBox and ignore-information
 end
-
-
-
---[[ OnClick seems deprecated with this implementation, and as such these are no longer called or needed
-function TalentedDropdownMenuButton_OnClickPvP()
-end
-
-function TalentedDropdownMenuButton_OnClickPvE(self,arg1,arg2,checked)
-    print("Toggling...")
-    print(self,arg1,arg2,checked) -- print arguments
-    local name = self:GetName()
-    ToggleDropDownMenu(1, nil, TalentedSavedBuildsDropdownPvE, name,0,0)
-end
---]]

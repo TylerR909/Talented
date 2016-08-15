@@ -35,10 +35,11 @@
     </Layers>
 
     <Scripts>
-        <Onload>
+        <Onload> <!--
             local topthird = GetScreenHeight() / 3
             self:ClearAllPoint()
             self:SetPoint("TOP","UIParent","TOP",0,-topthird)
+            !-->
         </Onload>
     </Scripts>
 

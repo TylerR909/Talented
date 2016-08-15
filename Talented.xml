@@ -149,7 +149,7 @@
     </Scripts>
 </Button>
 
-<Button name="TalentedSavedBuildsDropdownPvP" inherits="UIDropDownMenuTemplate" parent="PlayerTalentFramePVPTalents">
+<Button name="TalentedSavedBuildsDropdownPvP" inherits="UIDropDownMenuTemplate" parent="PlayerTalentFramePVPTalents" hidden="true">
     <Anchors>
         <Anchor point="BOTTOMRIGHT">
             <Offset x="-108" y="-29" />

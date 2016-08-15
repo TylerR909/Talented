@@ -2,6 +2,7 @@
 
 local Talented = "|cff00e0ffTalented|r"
 local Talented_UpdateInterval = 0.3; --1/4 of a second TODO: Play with this value until it "Feels" right, hopefully up to 0.5sec
+local MaxTalentTier, PvpMaxTalentTier = GetMaxTalentTier(),6
 local Talented_ClassColors = {
     WARRIOR = "|cffc79c6e",
     PALADIN = "|cfff58cba",
@@ -22,6 +23,7 @@ local Talented_ClassColors = {
 --TODO: Move frame up to top third of screen
 --TODO: Fix button text update when adding (and removing?) builds
 --TODO: Add button to use consumables to initiate spec changes
+--TODO: Add delete active to list
 
 function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key will be "PvE" or "PvP" to set a bool
     --TODO: Parse build_name to make sure it's not too long, has bad data, etc
@@ -77,10 +79,12 @@ end
 
 local function ApplyBuild(build,mode_key)
     if mode_key == "PvE" then mode_key = 1 elseif mode_key == "PvP" then mode_key = 2 end
+    --LearnPvpTalents, GetPvpTalentInfo(tier,column,1)
+
     for i = 1, GetMaxTalentTier() do
         local s = build:sub(i,i)
         --TODO: error checking
-        LearnTalents(GetTalentInfo(i,s,mode_key))
+        LearnTalents(GetTalentInfo(i,s,1))
     end
 end
 

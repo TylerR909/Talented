@@ -36,8 +36,6 @@
 
     <Scripts>
         <Onload>
-            print("|cff00e0ffTalented|r: We're still in Beta. Please feel free to report any issues via comments or tickets on the development Website on CurseForge.")
-            print("|cff00e0ffTalented|r: Biggest known issue: Dropdown text not updating until recreation after saving a new build.")
         </Onload>
     </Scripts>
 

@@ -1,4 +1,4 @@
--- Talented 0.9 - Working Prototype
+-- Talented beta-1.0
 
 local Talented = "|cff00e0ffTalented|r"
 local Talented_UpdateInterval = 0.3; --1/4 of a second TODO: Play with this value until it "Feels" right, hopefully up to 0.5sec

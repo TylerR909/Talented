@@ -21,6 +21,7 @@ local Talented_ClassColors = {
 --TODO: Make slash commands usable before Blizzard_TalentUI loads
 --TODO: Move frame up to top third of screen
 --TODO: Fix button text update when adding (and removing?) builds
+--This is a comment to prompt a change to test pushing and packaging for Curse
 
 
 function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key will be "PvE" or "PvP" to set a bool

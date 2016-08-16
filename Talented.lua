@@ -170,6 +170,7 @@ function TalentedInitDropdown(self,mode_key)
 
     local blank = {}
     blank.disabled = 1
+    blank.notCheckable = true
     UIDropDownMenu_AddButton(blank)
 
     --Add button to bottom to save currently-active build

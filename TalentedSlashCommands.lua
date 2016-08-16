@@ -37,10 +37,25 @@ end
 
 
 
-local function TalentedDeleteSpec(spec)
-    print(Talented..": Delete spec not yet implemented.")
-    --TODO: Implement Delete Spec
-    --Grab class, grab spec, sweep through TalentedDB and remove all matches
+local function TalentedDeleteClass(class)
+    class = class:match("^(%S*)%s*(.-)$");
+    if not isaPlayerClass(class) then
+        print(Talented..": '"..class.."' is not a valid class")
+        return
+    end
+
+    print(Talented..": Deleting all saved builds for "..class.."s")
+
+    local indices = {}
+    for i = 1, #TalentedDB do
+        if TalentedDB[i].class == class then tinsert(indices,i) end
+    end
+
+    local offset = 0
+    for i = 1, #indices do
+        tremove(TalentedDB,indices[i]-offset)
+        offset = offset+1
+    end
 end
 
 
@@ -89,11 +104,11 @@ local function TalentedDelete(msg)
     elseif (command == "character" or command == "char") then
         if (rest == "") then TalentedDeleteChar(GetUnitName("player"))
         else TalentedDeleteChar(rest) end
-    elseif (command == "spec") then TalentedDeleteSpec(rest)
+    elseif (command == "class") then TalentedDeleteClass(rest)
     elseif (command == "active") then TalentedDeleteActive()
     elseif (command ~= "" and TalentedDeleteTarget(command)) then
     else
-        print(Talented..": /tal delete [active | all | character | [saved build name]]")
+        print(Talented..": /tal del [active | all | character | class | [saved build name]]")
     end
     TalentedRedraw()
 end
@@ -101,7 +116,7 @@ end
 
 
 local function TalentedSlashShow(msg)
-    local command, rest = msg:match("^(%S*)%s*(.-)$");
+    local command = msg:match("^(%S*)%s*(.-)$");
     local current
 
     if command == "" or command == "all" then
@@ -124,7 +139,7 @@ local function TalentedSlashShow(msg)
             end
         end
     else
-        print(Talented..": /tal show [all]")
+        print(Talented..": /tal show [all | class]")
     end
 
 end
@@ -133,7 +148,7 @@ end
 
 
 ------------------------------------------------------------------------------
-local function TalentedParse(msg,editbox)
+local function TalentedParse(msg)
     if TalentedDB == nil then do
         print(Talented..": Database is empty. Nothing to do.")
         return
@@ -153,7 +168,7 @@ local function TalentedParse(msg,editbox)
             command == "display" or
             command == "print" then
                 TalentedSlashShow(rest)
-    else print(Talented..": /tal [delete | remove | clear]")
+    else print(Talented..": /tal [delete | show]")
     end
 end
 

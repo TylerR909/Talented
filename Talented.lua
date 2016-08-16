@@ -56,14 +56,13 @@ function TalentedCommitBuild(build)
                 return
                 end
             elseif current.code == build.code then do
-                print(Talented..": Build exists in table. Updating name to "..build.build_name)
+                print(Talented..": Build exists as "..current.build_name..". Updating name to "..build.build_name)
                 current.build_name = build.build_name
                 return -- Item exists in table. Update data and do not commit.
                 end
             elseif current.build_name == build.build_name then do
-                print(Talented..": Build name already exists in table as "..current.build_name)
+                print(Talented..": You've already saved that build as |cffff0000"..current.build_name.."|r. Updating to new name.")
                 current.code = build.code
-                print(Talented..": Updating the build with new saved spec.")
                 return -- Item exists in table. Update data and do not commit.
                 end
             end

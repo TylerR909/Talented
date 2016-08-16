@@ -1,11 +1,9 @@
 ## Interface: 70300
-## Version: beta-1.0
+## Version: beta-1.0.2
 ## Title: Talented
-## Notes: Save talent builds and load them at will.
+## Notes: Save and swap talent builds on the fly.
 ## Author: TylerR909
 ## SavedVariables: TalentedDB
-## LoadOnDemand: 0
-## LoadWith: Blizzard_TalentUI
 
 Talented.xml
 Talented.lua

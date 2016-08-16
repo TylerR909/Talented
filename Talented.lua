@@ -23,6 +23,7 @@ local Talented_ClassColors = {
 --TODO: Add delete active to list
 --TODO: Fix blinking when swapping specs
 --TODO: Fix blinking when dropping down
+--TODO: Add location-based loading. Autoload "Dungeon" spec when entering dungeons, etc
 
 function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key will be "PvE" or "PvP" to set a bool
     local build = {}
@@ -167,6 +168,10 @@ function TalentedInitDropdown(self,mode_key)
         end
     end
 
+    local blank = {}
+    blank.disabled = 1
+    UIDropDownMenu_AddButton(blank)
+
     --Add button to bottom to save currently-active build
     dat.text = "Save Active Build"
     dat.colorCode = "|cff00ff00"
@@ -176,6 +181,12 @@ function TalentedInitDropdown(self,mode_key)
     dat.notCheckable = true
     dat.justifyH = "CENTER"
     --dat.icon = "Spell_chargepositive.png"
+    UIDropDownMenu_AddButton(dat)
+
+    dat.text = "Delete Active Build"
+    dat.colorCode = "|cffff0000"
+    dat.value = nil
+    dat.func = TalentedDeleteButton
     UIDropDownMenu_AddButton(dat)
 end
 
@@ -215,6 +226,14 @@ function TalentedPrepActiveBuild(self,mode_key) --mode_key should be PvP or PvE
 end
 
 
+
+function TalentedDeleteButton()
+    TalentedDeleteActive()
+    TalentedRedraw()
+end
+
+
+
 --TODO: Create class-specific database for dropdown on load.
 -- Advantages: Can set Dropdown text directly with a quick sift through the smaller database
 -- Disadvantages: Adding/Deleting to two databases; long-term/short-term storage
@@ -233,8 +252,8 @@ init:SetScript("OnEvent", TalentedLoad)
 
 
 
-function TalentedRedraw()
-    --TODO: if frame exists, frame:hide()? Still shitty code
+function TalentedRedraw() -- Change this to "Refresh" please, ffs
+    --TODO: Fix frame stacking due to shittastic code
     if (IsAddOnLoaded("Blizzard_TalentUI")) then
         CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",_,"TalentedPvETemplate")
     end

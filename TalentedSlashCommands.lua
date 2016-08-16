@@ -60,7 +60,7 @@ end
 
 
 
-local function TalentedDeleteActive()
+function TalentedDeleteActive()
     local active = TalentedGetActiveBuild()
     if TalentedDB == nil then return end
 

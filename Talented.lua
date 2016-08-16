@@ -1,7 +1,7 @@
 -- Talented beta-1.0
 
 local Talented = "|cff00e0ffTalented|r"
-local Talented_UpdateInterval = 0.3; --1/4 of a second TODO: Play with this value until it "Feels" right, hopefully up to 0.5sec
+local Talented_UpdateInterval = 0.3;
 local MaxTalentTier, PvpMaxTalentTier = GetMaxTalentTier(),6
 local Talented_ClassColors = {
     WARRIOR = "|cffc79c6e",
@@ -19,13 +19,12 @@ local Talented_ClassColors = {
 }
 
 --TODO: Add delete GUI for "All this char, all this class, all"
---TODO: Make slash commands usable before Blizzard_TalentUI loads
---TODO: Fix button text update when adding (and removing?) builds
 --TODO: Add button to use consumables to initiate spec changes
 --TODO: Add delete active to list
+--TODO: Fix blinking when swapping specs
+--TODO: Fix blinking when dropping down
 
 function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key will be "PvE" or "PvP" to set a bool
-    --TODO: Parse build_name to make sure it's not too long, has bad data, etc
     local build = {}
 
     build.player_name = GetUnitName("player")
@@ -35,8 +34,9 @@ function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key wil
     build.mode = mode_key
     build.code = build_code
     build.build_name = build_name
-    --TODO: The editbox would be the place to "Ignore" rows and sweep through the string to zero out values
+    --TODO: The editbox would be the place to "Ignore" tiers and sweep through the string to zero out values
     TalentedCommitBuild(build)
+    TalentedRedraw()
 end
 
 
@@ -92,9 +92,9 @@ end
 function TalentedGetActiveBuild()
     local active_spec = ""
 
-    for row = 1,GetMaxTalentTier() do
+    for tier = 1,GetMaxTalentTier() do
        for column = 1,3 do
-           local _,_,_,active = GetTalentInfo(row,column,1)
+           local _,_,_,active = GetTalentInfo(tier,column,1)
            if active == true then active_spec = active_spec..column end
        end
     end
@@ -126,9 +126,6 @@ end
 function TalentedUpdateButtonText(self,build_code)
     self.TimeSinceLastUpdate = 0;
     UIDropDownMenu_SetSelectedValue(self,build_code)
-    --If I can figure out how to get through this, I can probably figure out how to centralize the Init
-    --I think maybe the frame, or the things being passed with frame (arg1,arg2...) aren't being passed
-    --and the UIDropDownMenu stuff uses those to function properly
 end
 
 
@@ -149,8 +146,6 @@ function TalentedInitDropdown(self,mode_key)
     local dat = {}
     local info
 
-    if not TalentedDB then print (Talented.." TalentedDB not loaded yet.") end
-
     if TalentedDB then
         --OnLoad TalentedDB hasn't been loaded yet, meaning this is not entered at the start
         for i = 1,#TalentedDB do
@@ -164,10 +159,10 @@ function TalentedInitDropdown(self,mode_key)
                 dat.value = info.code
                 dat.arg1 = mode_key
                 dat.func = TalentedSelectBuild --Change to SelectBuild after bug-fixing
-                local active = (TalentedGetActiveBuild() == info.code)
                 dat.checked = active
                 UIDropDownMenu_AddButton(dat);
 
+                local active = (TalentedGetActiveBuild() == info.code)
                 if (active) then UIDropDownMenu_SetText(self,info.name) end
             end
         end
@@ -218,4 +213,30 @@ function TalentedPrepActiveBuild(self,mode_key) --mode_key should be PvP or PvE
     TalentedPopupButton.build_code = self.value
     --A frame will pop up. When the user clicks save, the OnClick handler
     --will fire TalentedSaveActiveBuild with EditBox and ignore-information
+end
+
+
+--TODO: Create class-specific database for dropdown on load.
+-- Advantages: Can set Dropdown text directly with a quick sift through the smaller database
+-- Disadvantages: Adding/Deleting to two databases; long-term/short-term storage
+--I would save as char-specific in .toc but I want to be able to
+-- 1) Load all saved builds for a CLASS, not just 1 char
+-- 2) Delete all for a spec, class, or the entire database
+
+local init = CreateFrame("Frame")
+init:RegisterEvent("ADDON_LOADED")
+local function TalentedLoad(self, event, ...)
+    if ... == "Blizzard_TalentUI" then
+        TalentedRedraw()
+    end
+end
+init:SetScript("OnEvent", TalentedLoad)
+
+
+
+function TalentedRedraw()
+    if (IsAddOnLoaded("Blizzard_TalentUI")) then
+        CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",_,"TalentedPvETemplate")
+    end
+    --This is totally throwing away frames to garbage collection. What a shitty fix.
 end

@@ -18,7 +18,7 @@ local function TalentedDeleteChar(name)
             tinsert(indices,i)
             end
         end
-    end
+    end -- Collecting indices of objects to remove. Can't remove while going or #TalentedDB gets smaller while I head towards the first call
 
     local offset = 0
     for i = 1,#indices do
@@ -37,6 +37,7 @@ end
 local function TalentedDeleteSpec(spec)
     print(Talented..": Delete spec not yet implemented.")
     --TODO: Implement Delete Spec
+    --Grab class, grab spec, sweep through TalentedDB and remove all matches
 end
 
 local function TalentedDeleteActive()
@@ -68,6 +69,7 @@ local function TalentedDelete(msg)
     else
         print(Talented..": /tal delete [active | all | spec | character]")
     end
+    TalentedRedraw()
 end
 
 local function TalentedParse(msg,editbox)
@@ -78,7 +80,7 @@ local function TalentedParse(msg,editbox)
     end
 
     local command, rest = msg:match("^(%S*)%s*(.-)$");
-
+--TODO: /tal show (all | class | spec)
     if command == "delete" or
         command == "del" or
         command == "rm" or

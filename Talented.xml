@@ -123,16 +123,9 @@
 
 
 <!-- SAVED BUILDS DROPDOWN BOX !-->
- <Frame name="TalentedSavedBuildsDropdownTemplate" inherits="UIDropDownMenuTemplate" virtual="true" hidden="true">
-     <Anchors>
-        <Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT">
-            <Offset x="-110" y="0" />
-        </Anchor>
-     </Anchors>
- </Frame>
 
-
-<Button name="TalentedSavedBuildsDropdownPvE" inherits="UIDropDownMenuTemplate" parent="PlayerTalentFrameTalents"> --Should inherit TalentedSavedBuildsDropdownTemplate but that functionality isn't well-understood enough yet
+<Button name="TalentedPvETemplate" inherits="UIDropDownMenuTemplate" parent="PlayerTalentFrameTalents" virtual="true">
+    <!--Should inherit TalentedSavedBuildsDropdownTemplate but that functionality isn't well-understood enough yet!-->
     <Anchors>
         <Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT">
             <Offset x="-110" y="0" />
@@ -142,7 +135,7 @@
     <Scripts>
         <OnLoad>
             UIDropDownMenu_Initialize(self,TalentedInitDropdownPvE);
-            self.TimeSinceLastUpdate = 0;
+            self.TimeSinceLastUpdate = 10; --Set it over threshold (0.3 at time of writing) o update on first viewing
         </OnLoad>
         <OnUpdate>
             TalentedUpdateButtonText_OnUpdate(self,elapsed,"PvE")
@@ -150,7 +143,7 @@
     </Scripts>
 </Button>
 
-<Button name="TalentedSavedBuildsDropdownPvP" inherits="UIDropDownMenuTemplate" parent="PlayerTalentFramePVPTalents" hidden="true">
+<Button name="TalentedSavedBuildsDropdownPvP" inherits="UIDropDownMenuTemplate" parent="PlayerTalentFramePVPTalents" virtual="true">
     <Anchors>
         <Anchor point="BOTTOMRIGHT">
             <Offset x="-108" y="-29" />

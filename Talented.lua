@@ -110,7 +110,11 @@ function TalentedUpdateButtonText_OnUpdate(self,elapsed,mode)
 
     if (self.TimeSinceLastUpdate > Talented_UpdateInterval) then
         local value
-        if (mode == "PvE") then value = TalentedGetActiveBuild() elseif (mode == "PvP") then value = nil end
+        if (mode == "PvE") then
+            value = TalentedGetActiveBuild()
+        elseif (mode == "PvP") then
+            value = nil
+        end
         TalentedUpdateButtonText(self,value)
     end
     --TalentedSavedBuildsDropdownPvE
@@ -145,7 +149,10 @@ function TalentedInitDropdown(self,mode_key)
     local dat = {}
     local info
 
+    if not TalentedDB then print (Talented.." TalentedDB not loaded yet.") end
+
     if TalentedDB then
+        --OnLoad TalentedDB hasn't been loaded yet, meaning this is not entered at the start
         for i = 1,#TalentedDB do
             info = TalentedDB[i]
 
@@ -182,7 +189,7 @@ end
 
 function TalentedSelectBuild(self,arg1)
     if InCombatLockdown() == true then
-        print(Talented..": can't modify talents while in combat.")
+        print(Talented..": Can't modify talents while in combat.")
         return
     end
 
@@ -198,12 +205,12 @@ end
 
 
 function TalentedPrepActiveBuild(self,mode_key) --mode_key should be PvP or PvE
+    --self is the button. This funciton was attached to the button's OnClick.
+    -- self.value is the build code associated with the button.
     if InCombatLockdown() == true then
-        print(Talented..": can't save build while in combat.")
+        print(Talented..": Can't save build while in combat.")
         return
     end
-
-    --TODO InCombat blocking isn't working
 
     --Show TalentedPopup and hand it self.value (build code)
     TalentedPopup:Show()

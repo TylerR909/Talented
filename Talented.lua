@@ -20,7 +20,6 @@ local Talented_ClassColors = {
 
 --TODO: Add delete GUI for "All this char, all this class, all"
 --TODO: Make slash commands usable before Blizzard_TalentUI loads
---TODO: Move frame up to top third of screen
 --TODO: Fix button text update when adding (and removing?) builds
 --TODO: Add button to use consumables to initiate spec changes
 --TODO: Add delete active to list

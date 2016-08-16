@@ -181,7 +181,7 @@ end
 
 
 function TalentedSelectBuild(self,arg1)
-    if InCombatLockdown() == 1 then
+    if InCombatLockdown() == true then
         print(Talented..": can't modify talents while in combat.")
         return
     end
@@ -198,7 +198,7 @@ end
 
 
 function TalentedPrepActiveBuild(self,mode_key) --mode_key should be PvP or PvE
-    if InCombatLockdown() == 1 then
+    if InCombatLockdown() == true then
         print(Talented..": can't save build while in combat.")
         return
     end

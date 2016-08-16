@@ -234,6 +234,7 @@ init:SetScript("OnEvent", TalentedLoad)
 
 
 function TalentedRedraw()
+    --TODO: if frame exists, frame:hide()? Still shitty code
     if (IsAddOnLoaded("Blizzard_TalentUI")) then
         CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",_,"TalentedPvETemplate")
     end

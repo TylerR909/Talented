@@ -2,7 +2,7 @@
 
 local Talented = "|cff00e0ffTalented|r"
 local Talented_UpdateInterval = 0.3;
-local MaxTalentTier, PvpMaxTalentTier = GetMaxTalentTier(),6
+local MaxTalentTier, PvpMaxTalentTier = 7,6
 local Talented_ClassColors = {
     WARRIOR = "|cffc79c6e",
     PALADIN = "|cfff58cba",
@@ -249,7 +249,6 @@ end
 local init = CreateFrame("Frame")
 init:RegisterEvent("ADDON_LOADED")
 local function TalentedLoad(self, event, ...)
-    --TODO: Fix load-fail in combat
     if ... == "Blizzard_TalentUI" then
         CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",_,"TalentedPvETemplate")
         TalentedSavedBuildsDropdownPvE:Show()

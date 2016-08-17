@@ -43,7 +43,7 @@
     <Frames>
 
 <!-- EDIT BOX !-->
-        <EditBox name="$parentInput" letters="25" autoFocus="false">
+        <EditBox name="$parentInput" letters="16" autoFocus="false">
             <Size x="260" y="20" />
             <Anchors>
                 <Anchor point="CENTER" />
@@ -124,7 +124,7 @@
 
 <!-- SAVED BUILDS DROPDOWN BOX !-->
 
-<Button name="TalentedPvETemplate" inherits="UIDropDownMenuTemplate" parent="PlayerTalentFrameTalents" virtual="true">
+<Button name="TalentedPvETemplate" inherits="UIDropDownMenuTemplate" parent="PlayerTalentFrameTalents" virtual="true" hidden="true">
     <!--Should inherit TalentedSavedBuildsDropdownTemplate but that functionality isn't well-understood enough yet!-->
     <Anchors>
         <Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT">

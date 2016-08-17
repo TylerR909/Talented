@@ -37,7 +37,25 @@ function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key wil
     build.build_name = build_name
     --TODO: The editbox would be the place to "Ignore" tiers and sweep through the string to zero out values
     TalentedCommitBuild(build)
-    TalentedRedraw()
+    TalentedRefresh()
+end
+
+
+
+function TalentedPrepActiveBuild(self,mode_key) --mode_key should be PvP or PvE
+    --self is the button. This funciton was attached to the button's OnClick.
+    -- self.value is the build code associated with the button.
+    if InCombatLockdown() == true then
+        print(Talented..": Can't save build while in combat.")
+        return
+    end
+
+    --Show TalentedPopup and hand it self.value (build code)
+    TalentedPopup:Show()
+    TalentedPopupButton.mode_key = mode_key
+    TalentedPopupButton.build_code = self.value
+    --A frame will pop up. When the user clicks save, the OnClick handler
+    --will fire TalentedSaveActiveBuild with EditBox and ignore-information
 end
 
 
@@ -59,12 +77,12 @@ function TalentedCommitBuild(build)
             elseif current.code == build.code then do
                 print(Talented..": Build exists as "..current.build_name..". Updating name to "..build.build_name)
                 current.build_name = build.build_name
-                return -- Item exists in table. Update data and do not commit.
+                return -- Item exists in table. Update build order and do not commit.
                 end
             elseif current.build_name == build.build_name then do
                 print(Talented..": You've already saved that build as |cffff0000"..current.build_name.."|r. Updating to new name.")
                 current.code = build.code
-                return -- Item exists in table. Update data and do not commit.
+                return -- Item exists in table. Update name and do not commit.
                 end
             end
         end
@@ -77,13 +95,17 @@ end
 
 
 local function ApplyBuild(build,mode_key)
-    if mode_key == "PvE" then mode_key = 1 elseif mode_key == "PvP" then mode_key = 2 end
-    --LearnPvpTalents, GetPvpTalentInfo(tier,column,1)
-
-    for i = 1, GetMaxTalentTier() do
-        local s = build:sub(i,i)
-        --TODO: error checking
-        LearnTalents(GetTalentInfo(i,s,1))
+    if mode_key == "PvE" then
+        for i = 1, MaxTalentTier do
+            local s = build:sub(i,i)
+            --TODO: error checking
+            LearnTalents(GetTalentInfo(i,s,1))
+        end
+    elseif mode_key == "PvP" then
+        for i = 1, PvpMaxTalentTier do
+            local s = build:sub(i,i)
+            LearnPvpTalents(GetPvpTalentInfo(i,s,1))
+        end
     end
 end
 
@@ -92,7 +114,7 @@ end
 function TalentedGetActiveBuild()
     local active_spec = ""
 
-    for tier = 1,GetMaxTalentTier() do
+    for tier = 1,MaxTalentTier do
        for column = 1,3 do
            local _,_,_,active = GetTalentInfo(tier,column,1)
            if active == true then active_spec = active_spec..column end
@@ -159,11 +181,9 @@ function TalentedInitDropdown(self,mode_key)
                 dat.value = info.code
                 dat.arg1 = mode_key
                 dat.func = TalentedSelectBuild --Change to SelectBuild after bug-fixing
+                local active = (TalentedGetActiveBuild() == info.code)
                 dat.checked = active
                 UIDropDownMenu_AddButton(dat);
-
-                local active = (TalentedGetActiveBuild() == info.code)
-                if (active) then UIDropDownMenu_SetText(self,info.name) end
             end
         end
     end
@@ -199,6 +219,8 @@ function TalentedSelectBuild(self,arg1)
         return
     end
 
+    if (self.value == TalentedGetActiveBuild()) then return end
+
     ApplyBuild(self.value,arg1)
 
     if arg1=="PvE" then
@@ -210,27 +232,9 @@ end
 
 
 
-function TalentedPrepActiveBuild(self,mode_key) --mode_key should be PvP or PvE
-    --self is the button. This funciton was attached to the button's OnClick.
-    -- self.value is the build code associated with the button.
-    if InCombatLockdown() == true then
-        print(Talented..": Can't save build while in combat.")
-        return
-    end
-
-    --Show TalentedPopup and hand it self.value (build code)
-    TalentedPopup:Show()
-    TalentedPopupButton.mode_key = mode_key
-    TalentedPopupButton.build_code = self.value
-    --A frame will pop up. When the user clicks save, the OnClick handler
-    --will fire TalentedSaveActiveBuild with EditBox and ignore-information
-end
-
-
-
 function TalentedDeleteButton()
     TalentedDeleteActive()
-    TalentedRedraw()
+    TalentedRefresh()
 end
 
 
@@ -245,18 +249,22 @@ end
 local init = CreateFrame("Frame")
 init:RegisterEvent("ADDON_LOADED")
 local function TalentedLoad(self, event, ...)
+    --TODO: Fix load-fail in combat
     if ... == "Blizzard_TalentUI" then
-        TalentedRedraw()
+        CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",_,"TalentedPvETemplate")
+        TalentedSavedBuildsDropdownPvE:Show()
+        --PvP too
     end
 end
 init:SetScript("OnEvent", TalentedLoad)
 
 
 
-function TalentedRedraw() -- Change this to "Refresh" please, ffs
-    --TODO: Fix frame stacking due to shittastic code
-    if (IsAddOnLoaded("Blizzard_TalentUI")) then
-        CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",_,"TalentedPvETemplate")
+function TalentedRefresh()
+    --Inefficient but it works
+    if TalentedSavedBuildsDropdownPvE then
+        UIDropDownMenu_Initialize(TalentedSavedBuildsDropdownPvE,TalentedInitDropdownPvE)
+        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,TalentedGetActiveBuild())
+        --PvP Too
     end
-    --This is totally throwing away frames to garbage collection. What a shitty fix.
 end

@@ -110,7 +110,7 @@ local function TalentedDelete(msg)
     else
         print(Talented..": /tal del [active | all | character | class | [saved build name]]")
     end
-    TalentedRedraw()
+    TalentedRefresh()
 end
 
 
@@ -135,11 +135,11 @@ local function TalentedSlashShow(msg)
             current = TalentedDB[i]
 
             if (string.lower(current.class) == cmpto) then
-                print(Talented..':',current.class,current.spec,current.build_name)
+                print(Talented..':',current.class,current.spec,current.build_name,current.code)
             end
         end
     else
-        print(Talented..": /tal show [all | class]")
+        print(Talented..": /tal show [all | [class]]")
     end
 
 end
@@ -150,13 +150,13 @@ end
 ------------------------------------------------------------------------------
 local function TalentedParse(msg)
     if TalentedDB == nil then do
-        print(Talented..": Database is empty. Nothing to do.")
+        print(Talented..": No saved builds. Nothing to do.")
         return
         end
     end
 
     local command, rest = msg:match("^(%S*)%s*(.-)$");
---TODO: /tal show (all | class | spec)
+
     if command == "delete" or
         command == "del" or
         command == "rm" or

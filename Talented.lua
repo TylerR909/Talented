@@ -1,4 +1,4 @@
--- Talented beta-1.0
+-- Talented v1.0.4
 
 local Talented = "|cff00e0ffTalented|r"
 local Talented_UpdateInterval = 0.3;
@@ -20,9 +20,6 @@ local Talented_ClassColors = {
 
 --TODO: Add delete GUI for "All this char, all this class, all"
 --TODO: Add button to use consumables to initiate spec changes
---TODO: Add delete active to list
---TODO: Fix blinking when swapping specs
---TODO: Fix blinking when dropping down
 --TODO: Add location-based loading. Autoload "Dungeon" spec when entering dungeons, etc
 
 function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key will be "PvE" or "PvP" to set a bool

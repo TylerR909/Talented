@@ -168,7 +168,7 @@ local function TalentedParse(msg)
             command == "display" or
             command == "print" then
                 TalentedSlashShow(rest)
-    elseif command == "e" then TalentedPopup:Show()
+    --elseif command == "e" then TalentedPopup:Show()
     else print(Talented..": /tal [delete | show]")
     end
 end

@@ -35,6 +35,8 @@
         <Onload>
             self:SetPoint("CENTER","UIParent","TOP",0,-(GetScreenHeight()/3))
         </Onload>
+        <OnShow>
+        </OnShow>
     </Scripts>
 
     <Frames>
@@ -88,60 +90,6 @@
 
 
 
-        <Button name="TalentedTierIgnoreTemplate" text="Tier 1">
-            <Size x="200" y="20" />
-            <ButtonText>
-                <Anchors>
-                    <Anchor point="CENTER" />
-                </Anchors>
-            </ButtonText>
-
-            <NormalFont style="ChatFontNormal" />
-
-            <NormalTexture>
-                <Color r="0.4" g="0.4" b="0.4" a="0.4" />
-            </NormalTexture>
-
-            <Layers>
-                <Layer level="BACKGROUND">
-                    <Texture>
-                        <Color r="0.2" g="0.2" b="0.2" a="1" />
-                    </Texture>
-                </Layer>
-            </Layers>
-
-            <Anchors>
-                <Anchor point="CENTER" relativeTo="TalentedTierAnchor" relativePoint="CENTER"/>
-            </Anchors>
-
-            <Scripts>
-                <OnLoad>
-                    self.color = self:GetNormalTexture()
-                </OnLoad>
-                <OnShow>
-                    self.selected = true
-                    self:SetAlpha(1)
-                    self.color:SetVertexColor(0,1,0,1)
-                </OnShow>
-                <OnEnter>
-
-                </OnEnter>
-                <OnClick>
-                    self.selected = not self.selected
-
-                    if self.selected then
-                        self:SetAlpha(1)
-                        self.color:SetVertexColor(0,1,0)
-                    else
-                        self:SetAlpha(0.3)
-                        self.color:SetVertexColor(1,0,0)
-                    end
-                </OnClick>
-            </Scripts>
-        </Button>
-
-
-
 
 <!-- BUTTON !-->
         <Button name="$parentButton" text="Save Build">
@@ -175,8 +123,20 @@
                 <OnLoad>
                     self.mode_key = nil
                     self.build_code = nil
+                    self.ignoreKeys = nil
                 </OnLoad>
+                <OnEnter>
+                    self:GetNormalTexture():SetVertexColor(0,1,1)
+                </OnEnter>
+                <OnShow>
+                    TalentedPrepKeys(self.ignoreKeys,self.mode_key)
+                </OnShow>
+                <OnLeave>
+                    self:GetNormalTexture():SetVertexColor(1,1,1)
+                </OnLeave>
                 <OnClick>
+                    local tierIgnoreCode = TalentedProcessIgnoreKeys(self.ignoreKeys)
+                    self.build_code = TalentedIgnoreSmush(self.build_code,tierIgnoreCode)
                     TalentedSaveActiveBuild(self.build_code,self.mode_key,TalentedPopupInput:GetText())
                     HideParentPanel(self);
                 </OnClick>
@@ -186,8 +146,65 @@
 
 </Frame>
 
+<Button name = "TalentedIgnoreTierTemplate" hidden="true" virtual="true">
+    <Size x="200" y="20" />
+    <ButtonText>
+        <Anchors>
+            <Anchor point="CENTER" />
+        </Anchors>
+    </ButtonText>
 
-<!-- SAVED BUILDS DROPDOWN BOX !-->
+    <NormalFont style="ChatFontNormal" />
+
+    <NormalTexture>
+        <Color r="0.4" g="0.4" b="0.4" a="0.4" />
+    </NormalTexture>
+
+    <Layers>
+        <Layer level="BACKGROUND">
+            <Texture>
+                <Color r="0.2" g="0.2" b="0.2" a="1" />
+            </Texture>
+        </Layer>
+    </Layers>
+
+    <Anchors>
+        <Anchor point="CENTER" relativeTo="TalentedTierAnchor" relativePoint="CENTER"/>
+    </Anchors>
+
+    <Scripts>
+        <OnLoad>
+            self.color = self:GetNormalTexture()
+        </OnLoad>
+        <OnShow>
+            self.selected = true
+            self:SetAlpha(1)
+            self.color:SetVertexColor(0,1,0)
+        </OnShow>
+        <OnEnter>
+            self.color:SetVertexColor(0,0,1)
+        </OnEnter>
+        <OnLeave>
+            self.color:SetVertexColor(0,1,0)
+        </OnLeave>
+        <OnClick>
+            self.selected = not self.selected
+
+            if self.selected then
+                self:SetAlpha(1)
+                self.color:SetVertexColor(0,1,0)
+            else
+                self:SetAlpha(0.2)
+                self.color:SetVertexColor(1,0,0)
+            end
+        </OnClick>
+    </Scripts>
+</Button>
+
+
+
+
+    <!-- SAVED BUILDS DROPDOWN BOX !-->
 
 <Button name="TalentedPvETemplate" inherits="UIDropDownMenuTemplate" parent="PlayerTalentFrameTalents" virtual="true" hidden="true">
     <!--Should inherit TalentedSavedBuildsDropdownTemplate but that functionality isn't well-understood enough yet!-->

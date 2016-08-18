@@ -48,9 +48,9 @@ function TalentedPrepActiveBuild(self,mode_key) --mode_key should be PvP or PvE
     end
 
     --Show TalentedPopup and hand it self.value (build code)
-    TalentedPopup:Show()
     TalentedPopupButton.mode_key = mode_key
     TalentedPopupButton.build_code = self.value
+    TalentedPopup:Show()
     --A frame will pop up. When the user clicks save, the OnClick handler
     --will fire TalentedSaveActiveBuild with EditBox and ignore-information
 end
@@ -96,12 +96,12 @@ local function ApplyBuild(build,mode_key)
         for i = 1, MaxTalentTier do
             local s = build:sub(i,i)
             --TODO: error checking
-            LearnTalents(GetTalentInfo(i,s,1))
+            if s ~= "0" then LearnTalents(GetTalentInfo(i,s,1)) end
         end
     elseif mode_key == "PvP" then
         for i = 1, PvpMaxTalentTier do
             local s = build:sub(i,i)
-            LearnPvpTalents(GetPvpTalentInfo(i,s,1))
+            if s ~= "0" then LearnPvpTalents(GetPvpTalentInfo(i,s,1)) end
         end
     end
 end
@@ -245,8 +245,12 @@ end
 
 local init = CreateFrame("Frame")
 init:RegisterEvent("ADDON_LOADED")
+init:RegisterEvent("VARIABLES_LOADED")
+
 local function TalentedLoad(self, event, ...)
-    if ... == "Blizzard_TalentUI" then
+    if event == "VARIABLES_LOADED" then
+        TalentedCreateTierIgnoreButtons(TalentedPopupButton)
+    elseif ... == "Blizzard_TalentUI" then
         CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",_,"TalentedPvETemplate")
         TalentedSavedBuildsDropdownPvE:Show()
         --PvP too
@@ -264,3 +268,63 @@ function TalentedRefresh()
         --PvP Too
     end
 end
+
+
+
+
+
+
+
+
+function TalentedCreateTierIgnoreButtons(bin)
+    bin.ignoreKeys = {}
+
+    for i = 1, math.max(PvpMaxTalentTier,MaxTalentTier) do
+        local btn = CreateFrame("Button","TalentedTier"..i.."IgnoreButton",bin:GetParent(),"TalentedIgnoreTierTemplate")
+        bin.ignoreKeys[i] = btn
+
+        btn:SetText("Tier "..i)
+        if i ~= 1 then btn:SetPoint("TOP",bin.ignoreKeys[i-1],"BOTTOM",0,-5) end
+        btn:Show()
+    end
+end
+
+function TalentedPrepKeys(repo,mode_key)
+    local maxKeysToShow
+
+    if mode_key == "PvP" then maxKeysToShow = PvpMaxTalentTier elseif mode_key == "PvE" then maxKeysToShow = MaxTalentTier end
+
+    for i = 1,#repo do
+        repo[i]:Show()
+
+        if i > maxKeysToShow then repo[i]:Hide() end
+    end
+end
+
+function TalentedProcessIgnoreKeys(repo)
+    local ignoreCode = ""
+
+    local numShown = 0
+
+    for i = 1, #repo do if repo[i]:IsShown() then numShown = numShown + 1 end end
+
+    for i = 1, numShown do
+        if repo[i].selected then ignoreCode = ignoreCode.."0"
+            else ignoreCode = ignoreCode.."1"
+        end
+    end
+
+    return ignoreCode
+end
+
+function TalentedIgnoreSmush(build,ignore)
+    local rval = ""
+
+    for i = 1,strlen(build) do
+        if ignore:sub(i,i) == "1" then rval = rval.."0"
+          else rval = rval..build:sub(i,i) end
+    end
+
+    return rval
+end
+

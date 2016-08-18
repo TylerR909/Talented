@@ -1,4 +1,4 @@
--- Talented v1.0.4
+-- Talented beta-1.1.1
 
 local Talented = "|cff00e0ffTalented|r"
 local Talented_UpdateInterval = 0.3;

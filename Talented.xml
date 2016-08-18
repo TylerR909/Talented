@@ -8,7 +8,7 @@
     <!--BasicFrameTemplate!-->
     <!--HelpPlateBox!-->
 
-    <Size x="300" y="150" />
+    <Size x="250" y="300" />
     <Anchors>
         <Anchor point="CENTER" />
     </Anchors>
@@ -19,10 +19,7 @@
                 <Color r="0" g="0" b="0" a="0.9" />
             </Texture>
         </Layer>
-        <Layer level="BORDER">
-            <EdgeSize val="16" />
-
-        </Layer>
+        <Layer level="BORDER"></Layer>
         <Layer level="OVERLAY">
             <FontString name="$parent_Title" parentKey="title" inherits="ChatFontNormal" text="Talented">
                 <Anchors>
@@ -43,10 +40,12 @@
     <Frames>
 
 <!-- EDIT BOX !-->
-        <EditBox name="$parentInput" letters="16" autoFocus="false">
-            <Size x="260" y="20" />
+        <EditBox name="$parentInput" letters="17" autoFocus="false">
+            <Size x="225" y="20" />
             <Anchors>
-                <Anchor point="CENTER" />
+                <Anchor point="TOP">
+                    <Offset y="-45" />
+                </Anchor>
             </Anchors>
 
             <Layers>
@@ -66,7 +65,7 @@
                     self:ClearFocus()
                 </OnEnterPressed>
                 <OnShow>
-                    self:SetText("New build name...")
+                    self:SetText("New build name....")
                     self:HighlightText()
                     self:SetFocus()
                 </OnShow>
@@ -76,12 +75,79 @@
             </Scripts>
         </EditBox>
 
+<!-- Ignore Tiers Pane !-->
+
+        <Frame name="TalentedTierAnchor">
+            <Size x="1" y="1" />
+            <Anchors>
+                <Anchor point="TOP" relativePoint="TOP">
+                    <Offset y="-90" />
+                </Anchor>
+            </Anchors>
+        </Frame>
+
+
+
+        <Button name="TalentedTierIgnoreTemplate" text="Tier 1">
+            <Size x="200" y="20" />
+            <ButtonText>
+                <Anchors>
+                    <Anchor point="CENTER" />
+                </Anchors>
+            </ButtonText>
+
+            <NormalFont style="ChatFontNormal" />
+
+            <NormalTexture>
+                <Color r="0.4" g="0.4" b="0.4" a="0.4" />
+            </NormalTexture>
+
+            <Layers>
+                <Layer level="BACKGROUND">
+                    <Texture>
+                        <Color r="0.2" g="0.2" b="0.2" a="1" />
+                    </Texture>
+                </Layer>
+            </Layers>
+
+            <Anchors>
+                <Anchor point="CENTER" relativeTo="TalentedTierAnchor" relativePoint="CENTER"/>
+            </Anchors>
+
+            <Scripts>
+                <OnLoad>
+                    self.color = self:GetNormalTexture()
+                </OnLoad>
+                <OnShow>
+                    self.selected = true
+                    self:SetAlpha(1)
+                    self.color:SetVertexColor(0,1,0,1)
+                </OnShow>
+                <OnEnter>
+
+                </OnEnter>
+                <OnClick>
+                    self.selected = not self.selected
+
+                    if self.selected then
+                        self:SetAlpha(1)
+                        self.color:SetVertexColor(0,1,0)
+                    else
+                        self:SetAlpha(0.3)
+                        self.color:SetVertexColor(1,0,0)
+                    end
+                </OnClick>
+            </Scripts>
+        </Button>
+
+
 
 
 <!-- BUTTON !-->
         <Button name="$parentButton" text="Save Build">
             <!--UIPanelButtonTemplate !-->
 
+            <Size x="225" y="21" />
             <ButtonText>
                 <Anchors>
                     <Anchor point="CENTER" />
@@ -100,10 +166,9 @@
                     </Texture>
                 </Layer>
             </Layers>
-            <Size x="234" y="21" />
             <Anchors>
                 <Anchor point="BOTTOM">
-                    <Offset y="15" />
+                    <Offset y="13" />
                 </Anchor>
             </Anchors>
             <Scripts>

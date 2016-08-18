@@ -1,5 +1,5 @@
 ## Interface: 70300
-## Version: v1.0.4
+## Version: beta-1.1.1
 ## Title: Talented
 ## Notes: Save and swap talent builds on the fly.
 ## Author: TylerR909: Shibang, US-Korialstrasz

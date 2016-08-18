@@ -193,6 +193,7 @@ end
 function TalentedInitDropdown(self,mode_key)
     local dat = {}
     local info
+    local added_something = false;
 
     if TalentPool then
         --OnLoad TalentedDB hasn't been loaded yet, meaning this is not entered at the start
@@ -203,18 +204,21 @@ function TalentedInitDropdown(self,mode_key)
                 dat.text = info.build_name
                 dat.value = info.code
                 dat.arg1 = mode_key
-                dat.func = TalentedSelectBuild --Change to SelectBuild after bug-fixing
+                dat.func = TalentedSelectBuild
                 local active = (TalentedGetActiveBuild() == info.code)
                 dat.checked = active
                 UIDropDownMenu_AddButton(dat);
+                added_something = true
             end
         end
     end
 
-    local blank = {}
-    blank.disabled = 1
-    blank.notCheckable = true
-    UIDropDownMenu_AddButton(blank)
+    if (added_something) then
+        local blank = {}
+        blank.disabled = 1
+        blank.notCheckable = true
+        UIDropDownMenu_AddButton(blank)
+    end
 
     --Add button to bottom to save currently-active build
     dat.text = "Save Active Build"

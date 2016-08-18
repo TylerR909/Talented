@@ -185,7 +185,13 @@
             self.color:SetVertexColor(0,0,1)
         </OnEnter>
         <OnLeave>
-            self.color:SetVertexColor(0,1,0)
+            if self.selected then
+                self:SetAlpha(1)
+                self.color:SetVertexColor(0,1,0)
+            else
+                self:SetAlpha(0.2)
+                self.color:SetVertexColor(1,0,0)
+            end
         </OnLeave>
         <OnClick>
             self.selected = not self.selected

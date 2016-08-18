@@ -67,7 +67,7 @@ function TalentedDeleteActive()
     local current
     for i = 1,#TalentedDB do
         current = TalentedDB[i]
-        if current.code == active then
+        if TalentedIsAnActiveSpec(current.code,active) then
             print(Talented..": Deleting active build: "..current.build_name)
             tremove(TalentedDB,i)
             return true

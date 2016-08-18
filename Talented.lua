@@ -3,6 +3,7 @@
 local Talented = "|cff00e0ffTalented|r"
 local Talented_UpdateInterval = 0.3;
 local MaxTalentTier, PvpMaxTalentTier = 7,6
+local TalentPool
 local Talented_ClassColors = {
     WARRIOR = "|cffc79c6e",
     PALADIN = "|cfff58cba",
@@ -24,6 +25,7 @@ local Talented_ClassColors = {
 
 function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key will be "PvE" or "PvP" to set a bool
     local build = {}
+    --TODO: Auto-fail zero string
 
     build.player_name = GetUnitName("player")
     local tmp,_,_ = UnitClass("player")
@@ -32,7 +34,7 @@ function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key wil
     build.mode = mode_key
     build.code = build_code
     build.build_name = build_name
-    --TODO: The editbox would be the place to "Ignore" tiers and sweep through the string to zero out values
+
     TalentedCommitBuild(build)
     TalentedRefresh()
 end
@@ -40,7 +42,7 @@ end
 
 
 function TalentedPrepActiveBuild(self,mode_key) --mode_key should be PvP or PvE
-    --self is the button. This funciton was attached to the button's OnClick.
+    -- self is the button. This funciton was attached to the button's OnClick.
     -- self.value is the build code associated with the button.
     if InCombatLockdown() == true then
         print(Talented..": Can't save build while in combat.")
@@ -92,14 +94,15 @@ end
 
 
 local function ApplyBuild(build,mode_key)
+    if build == nil or #build < 1 then return end
+
     if mode_key == "PvE" then
-        for i = 1, MaxTalentTier do
+        for i = 1, #build do
             local s = build:sub(i,i)
-            --TODO: error checking
             if s ~= "0" then LearnTalents(GetTalentInfo(i,s,1)) end
         end
     elseif mode_key == "PvP" then
-        for i = 1, PvpMaxTalentTier do
+        for i = 1, #build do
             local s = build:sub(i,i)
             if s ~= "0" then LearnPvpTalents(GetPvpTalentInfo(i,s,1)) end
         end
@@ -119,6 +122,19 @@ function TalentedGetActiveBuild()
     end
 
     return active_spec
+end
+
+
+
+function TalentedIsAnActiveSpec(code,active)
+    for i = 1, #active do
+        if code:sub(i,i) ~= "0" then
+            if code:sub(i,i) ~= active:sub(i,i) then
+                return false
+            end
+        end
+    end
+    return true
 end
 
 
@@ -144,7 +160,20 @@ end
 
 function TalentedUpdateButtonText(self,build_code)
     self.TimeSinceLastUpdate = 0;
-    UIDropDownMenu_SetSelectedValue(self,build_code)
+
+    local target
+    --loop through TalentPool until we find an active spec
+    --store TalentPool[i].build_name
+
+    if TalentPool then
+        for i = 1, #TalentPool do
+            if TalentedIsAnActiveSpec(TalentPool[i].code,build_code) then
+                target = TalentPool[i].build_name
+            end
+        end
+    end
+
+    UIDropDownMenu_SetSelectedName(self,target)
 end
 
 
@@ -165,15 +194,12 @@ function TalentedInitDropdown(self,mode_key)
     local dat = {}
     local info
 
-    if TalentedDB then
+    if TalentPool then
         --OnLoad TalentedDB hasn't been loaded yet, meaning this is not entered at the start
-        for i = 1,#TalentedDB do
-            info = TalentedDB[i]
+        for i = 1,#TalentPool do
+            info = TalentPool[i]
 
-            if (info.player_name == GetUnitName("player") and
-                    info.class == UnitClass("player") and --Redundant unless there's another toon with a diff class on another server maybe
-                    info.spec == GetSpecialization() and
-                    info.mode == mode_key) then
+            if (info.mode == mode_key) then
                 dat.text = info.build_name
                 dat.value = info.code
                 dat.arg1 = mode_key
@@ -246,10 +272,13 @@ end
 local init = CreateFrame("Frame")
 init:RegisterEvent("ADDON_LOADED")
 init:RegisterEvent("VARIABLES_LOADED")
-
+init:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 local function TalentedLoad(self, event, ...)
     if event == "VARIABLES_LOADED" then
         TalentedCreateTierIgnoreButtons(TalentedPopupButton)
+        TalentedUpdateTalentPool()
+    elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
+        TalentedUpdateTalentPool()
     elseif ... == "Blizzard_TalentUI" then
         CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",_,"TalentedPvETemplate")
         TalentedSavedBuildsDropdownPvE:Show()
@@ -263,9 +292,36 @@ init:SetScript("OnEvent", TalentedLoad)
 function TalentedRefresh()
     --Inefficient but it works
     if TalentedSavedBuildsDropdownPvE then
+        TalentedUpdateTalentPool()
         UIDropDownMenu_Initialize(TalentedSavedBuildsDropdownPvE,TalentedInitDropdownPvE)
         TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,TalentedGetActiveBuild())
         --PvP Too
+    end
+end
+
+
+
+function TalentedUpdateTalentPool()
+    TalentPool = {}
+
+    local current
+
+    for i = 1, #TalentedDB do
+        current = TalentedDB[i]
+
+        if current.player_name == GetUnitName("player") and
+           current.class == UnitClass("player") and
+           current.spec == GetSpecialization()
+        then
+            local temp = {}
+
+            temp.spec = current.spec
+            temp.build_name = current.build_name
+            temp.code = current.code
+            temp.mode = current.mode
+
+            tinsert(TalentPool,temp)
+        end
     end
 end
 

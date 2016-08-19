@@ -102,6 +102,8 @@ end
 local function ApplyBuild(build,mode_key)
     if build == nil or #build < 1 then return end
 
+    ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch)
+
     if mode_key == "PvE" then
         for i = 1, #build do
             local s = build:sub(i,i)
@@ -113,6 +115,8 @@ local function ApplyBuild(build,mode_key)
             if s ~= "0" then LearnPvpTalents(GetPvpTalentInfo(i,s,1)) end
         end
     end
+
+    C_Timer.After(1,function () ChatFrame_RemoveMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end)
 end
 
 
@@ -418,4 +422,15 @@ function TalentedIsZeros(code)
     end
 
     return true
+end
+
+function TalentedSquelch(self, event, msg,...)
+    if msg:find("You have unlearned") then
+        return true
+    end
+    if msg:find("You have learned") then
+        return true
+    end
+
+    return false
 end

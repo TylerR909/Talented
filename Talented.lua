@@ -284,7 +284,7 @@ local function TalentedLoad(self, event, ...)
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
         TalentedUpdateTalentPool()
     elseif ... == "Blizzard_TalentUI" then
-        CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",_,"TalentedPvETemplate")
+        CreateFrame("Frame","TalentedSavedBuildsDropdownPvE", PlayerTalentFrameTalents,"TalentedPvETemplate")
         TalentedSavedBuildsDropdownPvE:Show()
         --PvP too
     end
@@ -351,7 +351,8 @@ end
 
 function TalentedPrepKeys(repo,mode_key)
     local maxKeysToShow
-
+--TODO: run to #build_code size? Make sure ignore keys are set to 0 becuase OnShow might not run on hidden keys, but the ignore-scan will pick up leftover 1's and 0's
+    --TODO: Mode Key becomes irrelevant if we have a build code. We're just hiding or showing buttons...
     if mode_key == "PvP" then maxKeysToShow = PvpMaxTalentTier elseif mode_key == "PvE" then maxKeysToShow = MaxTalentTier end
 
     for i = 1,#repo do

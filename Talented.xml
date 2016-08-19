@@ -135,6 +135,7 @@
                     self:GetNormalTexture():SetVertexColor(1,1,1)
                 </OnLeave>
                 <OnClick>
+                    --TODO: Code Cleanup: Rerun GetTalentSpec in case user changed talents in important tiers while saving?
                     local tierIgnoreCode = TalentedProcessIgnoreKeys(self.ignoreKeys)
                     self.build_code = TalentedIgnoreSmush(self.build_code,tierIgnoreCode)
                     TalentedSaveActiveBuild(self.build_code,self.mode_key,TalentedPopupInput:GetText())
@@ -194,6 +195,7 @@
             end
         </OnLeave>
         <OnClick>
+            --TODO: Code Cleanup: OnLeave/OnEnter should be enough to do this
             self.selected = not self.selected
 
             if self.selected then

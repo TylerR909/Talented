@@ -22,6 +22,8 @@ local Talented_ClassColors = {
 --TODO: Add delete GUI for "All this char, all this class, all"
 --TODO: Add button to use consumables to initiate spec changes
 --TODO: Add location-based loading. Autoload "Dungeon" spec when entering dungeons, etc
+--TODO: Add player-leveled event and update player-specific (not class) builds to build.."0" to ignore next tier (keeps TalentedGetActiveBuild and #build the same length for TalentedIsAnActiveSpec)
+--      Note: If Talented isn't running when player levels, code won't be updated. Save player level into db and when addon loads check for differences and update?
 
 function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key will be "PvE" or "PvP" to set a bool
     local build = {}
@@ -51,7 +53,6 @@ function TalentedPrepActiveBuild(self,mode_key) --mode_key should be PvP or PvE
 
     --Show TalentedPopup and hand it self.value (build code)
     TalentedPopupButton.mode_key = mode_key
-    TalentedPopupButton.build_code = self.value
     TalentedPopup:Show()
     --A frame will pop up. When the user clicks save, the OnClick handler
     --will fire TalentedSaveActiveBuild with EditBox and ignore-information
@@ -124,10 +125,25 @@ function TalentedGetActiveBuild()
     return active_spec
 end
 
+function TalentedPvpGetActiveBuild()
+    local active_spec = ""
+
+    for tier = 1, PvpMaxTalentTier do
+        for column = 1,3 do
+            local _,_,_,active = GetPvpTalentInfo(tier,column,1)
+            if active == true then active_spec = active_spec..column end
+        end
+    end
+
+    return active_spec
+end
+
 
 
 function TalentedIsAnActiveSpec(code,active)
-    for i = 1, #active do
+    if #code ~= #active then return false end
+
+    for i = 1, #code do
         if code:sub(i,i) ~= "0" then
             if code:sub(i,i) ~= active:sub(i,i) then
                 return false
@@ -223,7 +239,7 @@ function TalentedInitDropdown(self,mode_key)
     --Add button to bottom to save currently-active build
     dat.text = "Save Active Build"
     dat.colorCode = "|cff00ff00"
-    dat.value = TalentedGetActiveBuild()
+    dat.value = nil
     dat.arg1 = mode_key
     dat.func = TalentedPrepActiveBuild
     dat.notCheckable = true
@@ -349,17 +365,17 @@ function TalentedCreateTierIgnoreButtons(bin)
     end
 end
 
-function TalentedPrepKeys(repo,mode_key)
-    local maxKeysToShow
---TODO: run to #build_code size? Make sure ignore keys are set to 0 becuase OnShow might not run on hidden keys, but the ignore-scan will pick up leftover 1's and 0's
-    --TODO: Mode Key becomes irrelevant if we have a build code. We're just hiding or showing buttons...
-    if mode_key == "PvP" then maxKeysToShow = PvpMaxTalentTier elseif mode_key == "PvE" then maxKeysToShow = MaxTalentTier end
+function TalentedPrepKeys(repo,build_code)
+    local maxKeysToShow = #build_code
 
     for i = 1,#repo do
         repo[i]:Show()
 
         if i > maxKeysToShow then repo[i]:Hide() end
     end
+
+    if maxKeysToShow == 0 then TalentedPopup:SetHeight(105)
+    else TalentedPopup:SetHeight(125 + (maxKeysToShow * 25)) end
 end
 
 function TalentedProcessIgnoreKeys(repo)

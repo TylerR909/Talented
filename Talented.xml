@@ -122,14 +122,13 @@
             <Scripts>
                 <OnLoad>
                     self.mode_key = nil
-                    self.build_code = nil
                     self.ignoreKeys = nil
                 </OnLoad>
                 <OnEnter>
                     self:GetNormalTexture():SetVertexColor(0,1,1)
                 </OnEnter>
                 <OnShow>
-                    TalentedPrepKeys(self.ignoreKeys,self.mode_key)
+                    TalentedPrepKeys(self.ignoreKeys,TalentedGetActiveBuild())
                 </OnShow>
                 <OnLeave>
                     self:GetNormalTexture():SetVertexColor(1,1,1)
@@ -137,8 +136,12 @@
                 <OnClick>
                     --TODO: Code Cleanup: Rerun GetTalentSpec in case user changed talents in important tiers while saving?
                     local tierIgnoreCode = TalentedProcessIgnoreKeys(self.ignoreKeys)
-                    self.build_code = TalentedIgnoreSmush(self.build_code,tierIgnoreCode)
-                    TalentedSaveActiveBuild(self.build_code,self.mode_key,TalentedPopupInput:GetText())
+                    local build_code
+
+                    if self.mode_key == "PvE" then build_code = TalentedIgnoreSmush(TalentedGetActiveBuild(),tierIgnoreCode)
+                    elseif self.mode_key == "PvP" then build_code = TalentedIgnoreSmush(TalentedPvpGetActiveBuild(),tierIgnoreCode) end
+
+                    TalentedSaveActiveBuild(build_code,self.mode_key,TalentedPopupInput:GetText())
                     HideParentPanel(self);
                 </OnClick>
             </Scripts>
@@ -187,15 +190,12 @@
         </OnEnter>
         <OnLeave>
             if self.selected then
-                self:SetAlpha(1)
                 self.color:SetVertexColor(0,1,0)
             else
-                self:SetAlpha(0.2)
                 self.color:SetVertexColor(1,0,0)
             end
         </OnLeave>
         <OnClick>
-            --TODO: Code Cleanup: OnLeave/OnEnter should be enough to do this
             self.selected = not self.selected
 
             if self.selected then

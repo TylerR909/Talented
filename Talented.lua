@@ -24,10 +24,15 @@ local Talented_ClassColors = {
 --TODO: Add location-based loading. Autoload "Dungeon" spec when entering dungeons, etc
 --TODO: Add player-leveled event and update player-specific (not class) builds to build.."0" to ignore next tier (keeps TalentedGetActiveBuild and #build the same length for TalentedIsAnActiveSpec)
 --      Note: If Talented isn't running when player levels, code won't be updated. Save player level into db and when addon loads check for differences and update?
+--TODO: 101121 and 111121 - No differentiation is made on DeleteActive. Delete calls GetActive then the first match on the table is deleted
 
 function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key will be "PvE" or "PvP" to set a bool
     local build = {}
-    --TODO: Auto-fail zero string
+
+    if TalentedIsZeros(build_code) then
+        print(Talented..": Nothing to save if ignoring all tiers.")
+        return
+    end
 
     build.player_name = GetUnitName("player")
     local tmp,_,_ = UnitClass("player")
@@ -44,8 +49,7 @@ end
 
 
 function TalentedPrepActiveBuild(self,mode_key) --mode_key should be PvP or PvE
-    -- self is the button. This funciton was attached to the button's OnClick.
-    -- self.value is the build code associated with the button.
+    -- self is the button. This function was attached to the button's OnClick.
     if InCombatLockdown() == true then
         print(Talented..": Can't save build while in combat.")
         return
@@ -61,7 +65,8 @@ end
 
 
 function TalentedCommitBuild(build)
-    if TalentedDB == nil then TalentedDB = {} end
+    if TalentedDB == nil then --noinspection GlobalCreationOutsideO
+    TalentedDB = {} end
     local current
 
     for i = 1,#TalentedDB do
@@ -405,3 +410,12 @@ function TalentedIgnoreSmush(build,ignore)
     return rval
 end
 
+function TalentedIsZeros(code)
+    if code == nil then return true end
+
+    for i = 1, #code do
+        if code:sub(i,i) ~= "0" then return false end
+    end
+
+    return true
+end

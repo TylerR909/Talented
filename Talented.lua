@@ -355,6 +355,7 @@ end
 
 
 function TalentedLoadLDB()
+    --TODO: Clean up library in files and update .toc to auto-include libraries from Curse
     local f = CreateFrame("frame","TalentedLDB")
     local update_interval, elapsed = 1,0
 

@@ -3,7 +3,7 @@
 local Talented = "|cff00e0ffTalented|r"
 local Talented_UpdateInterval = 0.3;
 local MaxTalentTier, PvpMaxTalentTier = 7,6
-local TalentPool
+local TalentPool, ldb
 local Talented_ClassColors = {
     WARRIOR = "|cffc79c6e",
     PALADIN = "|cfff58cba",
@@ -291,12 +291,9 @@ end
 
 
 
---TODO: Create class-specific database for dropdown on load.
--- Advantages: Can set Dropdown text directly with a quick sift through the smaller database
--- Disadvantages: Adding/Deleting to two databases; long-term/short-term storage
---I would save as char-specific in .toc but I want to be able to
--- 1) Load all saved builds for a CLASS, not just 1 char
--- 2) Delete all for a spec, class, or the entire database
+
+
+--[[  LOAD HANDLER AND RELATED FUNCTIONS   --]]
 
 local init = CreateFrame("Frame")
 init:RegisterEvent("ADDON_LOADED")
@@ -306,6 +303,7 @@ local function TalentedLoad(self, event, ...)
     if event == "VARIABLES_LOADED" then
         TalentedCreateTierIgnoreButtons(TalentedPopupButton)
         TalentedUpdateTalentPool()
+        TalentedLoadLDB()
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
         TalentedUpdateTalentPool()
     elseif ... == "Blizzard_TalentUI" then
@@ -356,10 +354,62 @@ end
 
 
 
+function TalentedLoadLDB()
+    local f = CreateFrame("frame","TalentedLDB")
+    local update_interval, elapsed = 1,0
+
+    ldb = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("TalentedLDB", {
+        type = "launcher",
+        text = "Talented",
+        OnClick = function(clickedframe,button)
+            print(Talented)
+        end,
+    })
+
+    f:SetScript("OnUpdate", function(self,elap)
+        elapsed = elapsed + elap
+        if elapsed < update_interval then return end
+
+        elapsed = 0
+        ldb.text = Talented..": "..ldb.TalentedLDBUpdate()
+    end)
+
+    function ldb:OnTooltipShow()
+        self:AddLine("TalentedLDB")
+    end
+
+    function ldb:OnEnter()
+        GameTooltip:SetOwner(self,"ANCHOR_NONE")
+        GameTooltip:SetPoint("TOPLEFT",self,"BOTTOMLEFT")
+        GameTooltip:ClearLines()
+        ldb.OnTooltipShow(GameTooltip)
+        GameTooltip:Show()
+    end
+
+    function ldb:OnLeave()
+        GameTooltip:Hide()
+    end
+
+    function ldb:TalentedLDBUpdate()
+        local active = TalentedGetActiveBuild()
+
+        for i = 1, #TalentPool do
+            if TalentedIsAnActiveSpec(TalentPool[i].code,active) then
+                return TalentPool[i].build_name
+            end
+        end
+
+        return "Custom"
+    end
+end
 
 
 
 
+
+
+
+--[[  TIER FUNCTIONS AND UTILITIES   --]]
 
 function TalentedCreateTierIgnoreButtons(bin)
     bin.ignoreKeys = {}

@@ -376,7 +376,8 @@ function TalentedLoadLDB()
     end)
 
     function ldb:OnTooltipShow()
-        self:AddLine("TalentedLDB")
+        self:AddLine(Talented)
+        self:AddLine("Your currently-active build is saved as: |cff00ff00"..ldb.TalentedLDBUpdate(),1,1,1,true)
     end
 
     function ldb:OnEnter()

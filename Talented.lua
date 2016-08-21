@@ -20,6 +20,14 @@ local Talented_ClassColors = {
     DEMONHUNTER = "|cffa330c9"
 }
 
+local defaultops = {
+    squelch = 1, --[0: No Squelch][1: When Talented swaps talents][2: Always]
+    ldb = {
+        title_on = true
+    }
+}
+
+
 --TODO: Add delete GUI for "All this char, all this class, all"
 --TODO: Add button to use consumables to initiate spec changes
 --TODO: Add location-based loading. Autoload "Dungeon" spec when entering dungeons, etc
@@ -103,7 +111,8 @@ end
 local function ApplyBuild(build,mode_key)
     if build == nil or #build < 1 then return end
 
-    ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch)
+    if TalentedOptions.squelch ~= 0 then
+        ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end
 
     if mode_key == "PvE" then
         for i = 1, #build do
@@ -117,7 +126,8 @@ local function ApplyBuild(build,mode_key)
         end
     end
 
-    C_Timer.After(1,function () ChatFrame_RemoveMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end)
+    if TalentedOptions.squelch ~= 2 then
+        C_Timer.After(1,function () ChatFrame_RemoveMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end) end
 end
 
 
@@ -302,7 +312,9 @@ init:RegisterEvent("VARIABLES_LOADED")
 init:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 local function TalentedLoad(self, event, ...)
     if event == "VARIABLES_LOADED" then
+        TalentedOptions = TalentedOptions or defaultops
         TalentedCreateTierIgnoreButtons(TalentedPopupButton)
+        TalentedLoadOptions()
         TalentedUpdateTalentPool()
         TalentedLoadLDB()
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
@@ -387,7 +399,11 @@ function TalentedLoadLDB()
         if elapsed < update_interval then return end
 
         elapsed = 0
-        ldb.text = Talented..": "..ldb.TalentedLDBUpdate()
+
+        local t = ""
+        if (TalentedOptions.ldb.title_on) then t = Talented..": " end
+        t = t..ldb.TalentedLDBUpdate()
+        ldb.text = t
     end)
 
     function ldb:OnTooltipShow()
@@ -514,6 +530,75 @@ end
 
 
 
+--[[       Talented Options Loader         --]]
+function TalentedLoadOptions()
+    if TalentedOptions.squelch == 2 then ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end
+
+    TalentedOptions.pane = CreateFrame("Frame",nil,InterfaceOptionsFramePanelContainer)
+    local p = TalentedOptions.pane
+    p:Hide()
+
+    p:SetAllPoints()
+
+    p.name = Talented
+    p.okay = function(self) end
+    p.cancel = function(self) end
+    p.default = function(self) TalentedOptions = defaultops end
+
+    local title = p:CreateFontString(nil,"ARTWORK","GameFontNormalLarge")
+    --title:Hide()
+    title:SetText("Talented")
+    title:SetJustifyH("LEFT")
+    title:SetJustifyV("TOP")
+    title:SetPoint("TOPLEFT",16,-16)
+
+
+    --Squelch Dropdown
+    local squelch_label = p:CreateFontString(nil,"ARTWORK","GameFontHighlightSmall")
+    squelch_label:SetPoint("TOPLEFT",p,"TOPLEFT",16,-50)
+    squelch_label:SetText("When should "..Talented.." silence Talent-chat-spam?")
+
+    local dropdown = CreateFrame("Frame","TalentedSquelchSettings",p,"UIDropDownMenuTemplate")
+    dropdown:SetPoint("TOPLEFT",squelch_label,"BOTTOMLEFT",0,-10)
+    dropdown.initialize = function(d)
+        local squelch_settings = {"Never","Talented only","Always" }
+        for i = 1, #squelch_settings do
+            local b = UIDropDownMenu_CreateInfo()
+            b.text = squelch_settings[i]
+            b.value = i-1
+            b.func = function(self)
+                TalentedOptions.squelch = self.value
+                UIDropDownMenu_SetSelectedValue(d,self.value)
+                TalentedSquelchUpdate()
+            end
+            UIDropDownMenu_AddButton(b)
+        end
+        UIDropDownMenu_SetSelectedValue(d,TalentedOptions.squelch)
+    end
+    dropdown:HookScript("OnShow",dropdown.initialize)
+
+
+
+    --LDB Title
+    local ldb_title = CreateFrame("CheckButton","TalentedLDBTitleOption",p,"InterfaceOptionsCheckButtonTemplate")
+    ldb_title:SetPoint("TOPLEFT",dropdown,"BOTTOMLEFT",0,-25)
+    --ldb_title:SetText("Title in LDB Plugin")
+    getglobal(ldb_title:GetName().."Text"):SetText("Title in LDB Plugin")
+    ldb_title.tooltipText = "Enable the "..Talented.." title in the LDB Broker display."
+    ldb_title:SetScript("OnClick", function(self)
+        if self:GetChecked() then
+            TalentedOptions.ldb.title_on = false
+        else
+            TalentedOptions.ldb.title_on = true
+        end
+    end)
+    ldb_title:SetScript("OnShow", function(self) self:SetChecked(TalentedOptions.ldb.title_on) end)
+
+    InterfaceOptions_AddCategory(TalentedOptions.pane)
+end
+
+
+
 --[[  TIER FUNCTIONS AND UTILITIES   --]]
 
 function TalentedCreateTierIgnoreButtons(bin)
@@ -588,4 +673,14 @@ function TalentedSquelch(self, event, msg,...)
     end
 
     return false
+end
+
+function TalentedSquelchUpdate()
+    local op = TalentedOptions.squelch
+
+    if op == 0 then
+        ChatFrame_RemoveMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch)
+    elseif op == 2 or op == 1 then
+        ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch)
+    end
 end

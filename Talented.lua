@@ -305,6 +305,7 @@ init:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 local function TalentedLoad(self, event, ...)
     if event == "VARIABLES_LOADED" then
         TalentedCreateTierIgnoreButtons(TalentedPopupButton)
+        TalentedDB = TalentedDB or {}
         TalentedUpdateTalentPool()
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
         TalentedUpdateTalentPool()
@@ -331,6 +332,8 @@ end
 
 
 function TalentedUpdateTalentPool()
+    if TalentedDB == nil or #TalentedDB < 1 then return end
+
     TalentPool = {}
 
     local current

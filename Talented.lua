@@ -1,5 +1,6 @@
--- Talented beta-1.1.1
+-- Talented release v1.1.5
 
+local addonName, addonTable = ...
 local Talented = "|cff00e0ffTalented|r"
 local Talented_UpdateInterval = 0.3;
 local MaxTalentTier, PvpMaxTalentTier = 7,6
@@ -367,13 +368,14 @@ function TalentedLoadLDB()
     local update_interval, elapsed = 1,0
     local dropdown, buttons
 
-    ldb = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("TalentedLDB", {
+    ldb = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Talented", {
         type = "launcher",
+        icon = "Interface\\Icons\\Ability_marksmanship",
         text = "Talented",
         OnClick = function(_, button)
-            if button == "RightButton" then ToggleTalentFrame(); dropdown:Hide(); return end
-
             if not dropdown then dropdown = TalentedLDBDropdown() end
+
+            if button == "RightButton" then ToggleTalentFrame(); dropdown:Hide(); return end
 
             if dropdown:IsVisible() then dropdown:Hide()
             else dropdown:Show() end
@@ -394,6 +396,8 @@ function TalentedLoadLDB()
     end
 
     function ldb:OnEnter()
+        if dropdown:IsShown() then GameTooltip:Hide(); return end
+
         GameTooltip:SetOwner(self,"ANCHOR_NONE")
         GameTooltip:SetPoint("TOPLEFT",self,"BOTTOMLEFT")
         GameTooltip:ClearLines()
@@ -426,6 +430,7 @@ function TalentedLoadLDB()
         d:SetFrameStrata("DIALOG")
         d:SetWidth(125)
         d:SetParent(ldb)
+        d:SetClampedToScreen(true)
 
         d.texture = d:CreateTexture(nil,"BACKGROUND")
         d.texture:SetColorTexture(0,0,0,0.8)

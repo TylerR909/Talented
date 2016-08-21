@@ -377,7 +377,7 @@ end
 function TalentedLoadLDB()
     --TODO: Clean up library in files and update .toc to auto-include libraries from Curse
     local f = CreateFrame("frame","TalentedLDB")
-    local update_interval, elapsed = 1,0
+    local update_interval, elapsed = 1.5,0
     local dropdown, buttons
 
     ldb = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Talented", {

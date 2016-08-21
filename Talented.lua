@@ -586,10 +586,11 @@ function TalentedLoadOptions()
     getglobal(ldb_title:GetName().."Text"):SetText("Title in LDB Plugin")
     ldb_title.tooltipText = "Enable the "..Talented.." title in the LDB Broker display."
     ldb_title:SetScript("OnClick", function(self)
+        --Button switches state THEN this is run
         if self:GetChecked() then
-            TalentedOptions.ldb.title_on = false
-        else
             TalentedOptions.ldb.title_on = true
+        else
+            TalentedOptions.ldb.title_on = false
         end
     end)
     ldb_title:SetScript("OnShow", function(self) self:SetChecked(TalentedOptions.ldb.title_on) end)

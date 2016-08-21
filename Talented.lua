@@ -332,9 +332,9 @@ end
 
 
 function TalentedUpdateTalentPool()
-    if TalentedDB == nil or #TalentedDB < 1 then return end
-
     TalentPool = {}
+
+    if TalentedDB == nil or #TalentedDB < 1 then return end
 
     local current
 

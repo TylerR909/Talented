@@ -370,8 +370,10 @@ function TalentedLoadLDB()
     ldb = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("TalentedLDB", {
         type = "launcher",
         text = "Talented",
-        OnClick = function()
-            if not dropdown then dropdown = TalentedLDBDropdown(self) end
+        OnClick = function(_, button)
+            if button == "RightButton" then ToggleTalentFrame(); dropdown:Hide(); return end
+
+            if not dropdown then dropdown = TalentedLDBDropdown() end
 
             if dropdown:IsVisible() then dropdown:Hide()
             else dropdown:Show() end
@@ -422,7 +424,7 @@ function TalentedLoadLDB()
         --if d:IsShown() then d:Hide(); return end
         d:SetPoint("CENTER",UIParent,"CENTER")
         d:SetFrameStrata("DIALOG")
-        d:SetWidth(150)
+        d:SetWidth(125)
         d:SetParent(ldb)
 
         d.texture = d:CreateTexture(nil,"BACKGROUND")
@@ -438,6 +440,12 @@ function TalentedLoadLDB()
     end
 
     function TalentedLDBPopulateDropdown(d)
+        if #TalentPool < 1 then d:Hide(); return end
+
+        local mousex, mousey = GetCursorPosition()
+        d:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",mousex,mousey-10)
+        --d:SetPoint("TOPLEFT",TalentedLDB,"BOTTOMLEFT")
+
         if buttons and #buttons > 0 then
             for i=1,#buttons do
                 buttons[i]:Hide()
@@ -445,6 +453,7 @@ function TalentedLoadLDB()
         end
 
         buttons = {}
+        local button_height = 20
 --[[
         local norm = d:CreateTexture()
             norm:SetColorTexture(0,0,0,0.8)
@@ -458,7 +467,7 @@ function TalentedLoadLDB()
 --]]
         for i = 1, #TalentPool do
             local b = CreateFrame("Button")
-            b:SetHeight(25)
+            b:SetHeight(button_height)
             b:SetWidth(d:GetWidth())
             b:SetParent(d)
             b:SetNormalFontObject("GameFontNormalSmall")
@@ -475,22 +484,22 @@ function TalentedLoadLDB()
             b:SetScript("OnClick",function() ApplyBuild(TalentPool[i].code,"PvE"); d:Hide() end)
 
             if i == 1 then b:SetPoint("TOP",d,"TOP")
-            else b:SetPoint("TOP",buttons[i-1],"BOTTOM") end
+            else b:SetPoint("TOP",buttons[i-1],"BOTTOM",0,0) end
 
-            if i % 2 == 0  then
-                b.texture:SetColorTexture(0,0,0,0.8)
-                b:SetScript("OnEnter",function() b.texture:SetColorTexture(1,1,0,0.8) end)
-                b:SetScript("OnLeave",function() b.texture:SetColorTexture(0,0,0,0.8) end)
+            if i % 2 ~= 0  then
+                b.texture:SetColorTexture(0,0,0,0.7)
+                b:SetScript("OnEnter",function() b.texture:SetColorTexture(1,1,0,0.3) end)
+                b:SetScript("OnLeave",function() b.texture:SetColorTexture(0,0,0,0.7) end)
             else
-                b.texture:SetColorTexture(1,1,1,0.9)
-                b:SetScript("OnEnter",function() b.texture:SetColorTexture(1,1,0,0.8) end)
-                b:SetScript("OnLeave",function() b.texture:SetColorTexture(1,1,1,0.9) end)
+                b.texture:SetColorTexture(0.1,0.1,0.1,0.9)
+                b:SetScript("OnEnter",function() b.texture:SetColorTexture(1,1,0,0.3) end)
+                b:SetScript("OnLeave",function() b.texture:SetColorTexture(0.1,0.1,0.1,0.9) end)
             end
 
             buttons[i] = b
         end
 
-        d:SetHeight(#buttons * 25)
+        d:SetHeight(#buttons * button_height)
     end
 end
 

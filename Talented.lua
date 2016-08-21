@@ -387,6 +387,8 @@ function TalentedLoadLDB()
         OnClick = function(_, button)
             if not dropdown then dropdown = TalentedLDBDropdown() end
 
+            if InCombatLockdown() then dropdown:Hide(); return end
+
             if button == "RightButton" then ToggleTalentFrame(); dropdown:Hide(); return end
 
             if dropdown:IsVisible() then dropdown:Hide()

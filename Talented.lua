@@ -392,7 +392,7 @@ function TalentedLoadLDB()
             if button == "RightButton" then ToggleTalentFrame(); dropdown:Hide(); return end
 
             if dropdown:IsVisible() then dropdown:Hide()
-            else dropdown:Show() end
+            else dropdown:Show(); GameTooltip:Hide() end
         end,
     })
 
@@ -414,7 +414,7 @@ function TalentedLoadLDB()
     end
 
     function ldb:OnEnter()
-        if dropdown:IsShown() then GameTooltip:Hide(); return end
+        --if dropdown:IsVisible() then GameTooltip:Hide(); return end
 
         GameTooltip:SetOwner(self,"ANCHOR_NONE")
         GameTooltip:SetPoint("TOPLEFT",self,"BOTTOMLEFT")
@@ -441,8 +441,11 @@ function TalentedLoadLDB()
 
     function TalentedLDBDropdown(ldb)
         GameTooltip:Hide()
+        GameTooltip:ClearLines()
 
-        local d = CreateFrame("Frame","TalentedLDBDropdown_")
+        local d = CreateFrame("Frame","TalentedLDBDropdown_",UIParent,"InsetFrameTemplate2")
+        --OptionsBoxTemplate
+        --GlowBoxTemplate
         --if d:IsShown() then d:Hide(); return end
         d:SetPoint("CENTER",UIParent,"CENTER")
         d:SetFrameStrata("DIALOG")
@@ -451,7 +454,7 @@ function TalentedLoadLDB()
         d:SetClampedToScreen(true)
 
         d.texture = d:CreateTexture(nil,"BACKGROUND")
-        d.texture:SetColorTexture(0,0,0,0.8)
+        --d.texture:SetColorTexture(0,0,0,0.8)
         d.texture:SetAllPoints(d)
 
         d:SetScript("OnLeave", function() d:Hide() end)
@@ -464,9 +467,8 @@ function TalentedLoadLDB()
 
     function TalentedLDBPopulateDropdown(d)
         if #TalentPool < 1 then d:Hide(); return end
-
         local mousex, mousey = GetCursorPosition()
-        d:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",mousex,mousey-10)
+        d:SetPoint("TOP",UIParent,"BOTTOMLEFT",mousex,mousey-10)
         --d:SetPoint("TOPLEFT",TalentedLDB,"BOTTOMLEFT")
 
         if buttons and #buttons > 0 then
@@ -477,52 +479,44 @@ function TalentedLoadLDB()
 
         buttons = {}
         local button_height = 20
---[[
-        local norm = d:CreateTexture()
-            norm:SetColorTexture(0,0,0,0.8)
-            norm:SetAllPoints(true)
-        local highlight = d:CreateTexture()
-            highlight:SetColorTexture(1,1,0,0.8)
-            highlight:SetAllPoints(true)
-        local pushed = d:CreateTexture()
-            pushed:SetColorTexture(0,0,1,0.8)
-            pushed:SetAllPoints(true)
---]]
+
         for i = 1, #TalentPool do
-            local b = CreateFrame("Button")
+            local b = CreateFrame("Button","TalentedLDBButton"..i,d)
             b:SetHeight(button_height)
-            b:SetWidth(d:GetWidth())
-            b:SetParent(d)
+            b:SetWidth(d:GetWidth()-8)
             b:SetNormalFontObject("GameFontNormalSmall")
+            b:SetHighlightFontObject("GameFontHighlightSmall")
             b:SetText(TalentPool[i].build_name)
+            b:SetFrameStrata("HIGH")
 
+                --NORMAL
+            local norm = b:CreateTexture()
+            norm:SetAllPoints(b)
+            if i % 2 ~= 0  then norm:SetColorTexture(0,0,0,0.7)
+                           else norm:SetColorTexture(0.1,0.1,0.1,0.9) end
+            b:SetNormalTexture(norm,"DISABLE")
+                --PUSHED
+            local pushed = b:CreateTexture()
+            pushed:SetColorTexture(0,0.5,0.5,0.8)
+            pushed:SetAllPoints(true)
+            b:SetPushedTexture(pushed)
+                --HIGHLIGHT
+            local highlight = b:CreateTexture()
+            highlight:SetColorTexture(0,1,1,0.8)
+            highlight:SetAllPoints(true)
+            b:SetHighlightTexture(highlight,"MOD")
+            --[[
+            --]]
 
-            b.texture = b:CreateTexture()
-            b.texture:SetAllPoints(b)
-
-            --b.SetNormalTextureColor(1,1,1)
-            --b.SetPushedTexture(pushed)
-            --b.SetHighlightTexture(highlight)
-
-            b:SetScript("OnClick",function() ApplyBuild(TalentPool[i].code,"PvE"); d:Hide() end)
-
-            if i == 1 then b:SetPoint("TOP",d,"TOP")
+            if i == 1 then b:SetPoint("TOP",d,"TOP",0,-4)
             else b:SetPoint("TOP",buttons[i-1],"BOTTOM",0,0) end
 
-            if i % 2 ~= 0  then
-                b.texture:SetColorTexture(0,0,0,0.7)
-                b:SetScript("OnEnter",function() b.texture:SetColorTexture(1,1,0,0.3) end)
-                b:SetScript("OnLeave",function() b.texture:SetColorTexture(0,0,0,0.7) end)
-            else
-                b.texture:SetColorTexture(0.1,0.1,0.1,0.9)
-                b:SetScript("OnEnter",function() b.texture:SetColorTexture(1,1,0,0.3) end)
-                b:SetScript("OnLeave",function() b.texture:SetColorTexture(0.1,0.1,0.1,0.9) end)
-            end
+            b:SetScript("OnClick",function() ApplyBuild(TalentPool[i].code,"PvE"); d:Hide() end)
 
             buttons[i] = b
         end
 
-        d:SetHeight(#buttons * button_height)
+        d:SetHeight((#buttons * button_height)+8)
     end
 end
 

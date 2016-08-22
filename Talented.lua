@@ -450,7 +450,7 @@ function TalentedLoadLDB()
         d:ClearAllPoints()
         d:SetPoint("TOP",p,"BOTTOM")
         d:SetFrameStrata("DIALOG")
-        d:SetWidth(125)
+        d:SetWidth(150)
         d:SetClampedToScreen(true)
 
         d.texture = d:CreateTexture(nil,"BACKGROUND")

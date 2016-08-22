@@ -67,10 +67,13 @@ function TalentedDeleteActive()
     local current
     for i = 1,#TalentedDB do
         current = TalentedDB[i]
-        if current.class == UnitClass("player") and TalentedIsAnActiveSpec(current.code,active) then
-            print(Talented..": Deleting active build: "..current.build_name)
-            tremove(TalentedDB,i)
-            return true
+        if current.class == UnitClass("player") and
+           current.spec == GetSpecialization() and
+           TalentedIsAnActiveSpec(current.code,active) then
+
+                print(Talented..": Deleting active build: "..current.build_name)
+                tremove(TalentedDB,i)
+                return true
         end
     end
 
@@ -84,7 +87,9 @@ local function TalentedDeleteTarget(target)
 
     for i = 1, #TalentedDB do
         if TalentedDB[i].player_name == pname and
+            TalentedDB[i].spec == GetSpecialization() and
             TalentedDB[i].build_name == target then
+
             print(Talented..": Deleting build '|cffff0000"..target.."|r'")
             tremove(TalentedDB,i)
             return true
@@ -168,8 +173,11 @@ local function TalentedParse(msg)
             command == "display" or
             command == "print" then
                 TalentedSlashShow(rest)
+    elseif command == "options" or
+            command == "ops" then
+                InterfaceOptionsFrame_OpenToCategory(TalentedOptions.pane)
     --elseif command == "e" then TalentedPopup:Show()
-    else print(Talented..": /tal [delete | show]")
+    else print(Talented..": /tal [delete | show | options]")
     end
 end
 

@@ -1,9 +1,10 @@
--- Talented beta-1.1.1
+-- Talented release v1.2.0
 
+local addonName, addonTable = ...
 local Talented = "|cff00e0ffTalented|r"
 local Talented_UpdateInterval = 0.3;
 local MaxTalentTier, PvpMaxTalentTier = 7,6
-local TalentPool
+local TalentPool, ldb
 local Talented_ClassColors = {
     WARRIOR = "|cffc79c6e",
     PALADIN = "|cfff58cba",
@@ -18,6 +19,14 @@ local Talented_ClassColors = {
     DRUID = "|cffff7d0a",
     DEMONHUNTER = "|cffa330c9"
 }
+
+local defaultops = {
+    squelch = 1, --[0: No Squelch][1: When Talented swaps talents][2: Always]
+    ldb = {
+        title_on = true
+    }
+}
+
 
 --TODO: Add delete GUI for "All this char, all this class, all"
 --TODO: Add button to use consumables to initiate spec changes
@@ -102,7 +111,8 @@ end
 local function ApplyBuild(build,mode_key)
     if build == nil or #build < 1 then return end
 
-    ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch)
+    if TalentedOptions.squelch ~= 0 then
+        ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end
 
     if mode_key == "PvE" then
         for i = 1, #build do
@@ -116,7 +126,8 @@ local function ApplyBuild(build,mode_key)
         end
     end
 
-    C_Timer.After(1,function () ChatFrame_RemoveMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end)
+    if TalentedOptions.squelch ~= 2 then
+        C_Timer.After(1,function () ChatFrame_RemoveMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end) end
 end
 
 
@@ -291,12 +302,9 @@ end
 
 
 
---TODO: Create class-specific database for dropdown on load.
--- Advantages: Can set Dropdown text directly with a quick sift through the smaller database
--- Disadvantages: Adding/Deleting to two databases; long-term/short-term storage
---I would save as char-specific in .toc but I want to be able to
--- 1) Load all saved builds for a CLASS, not just 1 char
--- 2) Delete all for a spec, class, or the entire database
+
+
+--[[  LOAD HANDLER AND RELATED FUNCTIONS   --]]
 
 local init = CreateFrame("Frame")
 init:RegisterEvent("ADDON_LOADED")
@@ -304,9 +312,12 @@ init:RegisterEvent("VARIABLES_LOADED")
 init:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 local function TalentedLoad(self, event, ...)
     if event == "VARIABLES_LOADED" then
+        TalentedOptions = TalentedOptions or defaultops
         TalentedCreateTierIgnoreButtons(TalentedPopupButton)
         TalentedDB = TalentedDB or {}
+        TalentedLoadOptions()
         TalentedUpdateTalentPool()
+        TalentedLoadLDB()
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
         TalentedUpdateTalentPool()
     elseif ... == "Blizzard_TalentUI" then
@@ -363,6 +374,228 @@ end
 
 
 
+
+--[[     LDB Loader & Functions              --]]
+
+function TalentedLoadLDB()
+    --TODO: Clean up library in files and update .toc to auto-include libraries from Curse
+    local f = CreateFrame("frame","TalentedLDB")
+    local update_interval, elapsed = 1.5,0
+    local dropdown, buttons
+
+    ldb = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Talented", {
+        type = "launcher",
+        icon = "Interface\\Icons\\Ability_marksmanship",
+        text = "Talented",
+        OnClick = function(p, button)
+            if not dropdown then dropdown = TalentedLDBDropdown(p) end
+
+            if InCombatLockdown() then dropdown:Hide(); return end
+
+            if button == "RightButton" then ToggleTalentFrame(); dropdown:Hide(); return end
+
+            if dropdown:IsVisible() then dropdown:Hide()
+            else dropdown:Show(); GameTooltip:Hide() end
+        end,
+    })
+
+    f:SetScript("OnUpdate", function(self,elap)
+        elapsed = elapsed + elap
+        if elapsed < update_interval then return end
+
+        elapsed = 0
+
+        local t = ""
+        if (TalentedOptions.ldb.title_on) then t = Talented..": " end
+        t = t..ldb.TalentedLDBUpdate()
+        ldb.text = t
+    end)
+
+    function ldb:OnTooltipShow()
+        self:AddLine(Talented)
+        self:AddLine("Your currently-active build is saved as: |cff00ff00"..ldb.TalentedLDBUpdate(),1,1,1,true)
+    end
+
+    function ldb:OnEnter()
+        --if dropdown:IsVisible() then GameTooltip:Hide(); return end
+
+        GameTooltip:SetOwner(self,"ANCHOR_NONE")
+        GameTooltip:SetPoint("TOPLEFT",self,"BOTTOMLEFT")
+        GameTooltip:ClearLines()
+        ldb.OnTooltipShow(GameTooltip)
+        GameTooltip:Show()
+    end
+
+    function ldb:OnLeave()
+        GameTooltip:Hide()
+    end
+
+    function ldb:TalentedLDBUpdate()
+        local active = TalentedGetActiveBuild()
+
+        for i = 1, #TalentPool do
+            if TalentedIsAnActiveSpec(TalentPool[i].code,active) then
+                return TalentPool[i].build_name
+            end
+        end
+
+        return "Custom"
+    end
+
+    function TalentedLDBDropdown(p)
+        GameTooltip:Hide()
+        GameTooltip:ClearLines()
+
+        local d = CreateFrame("Frame","TalentedLDBDropdown_",UIParent,"InsetFrameTemplate2")
+        --OptionsBoxTemplate
+        --GlowBoxTemplate
+        --if d:IsShown() then d:Hide(); return end
+        d:ClearAllPoints()
+        d:SetPoint("TOP",p,"BOTTOM")
+        d:SetFrameStrata("DIALOG")
+        d:SetWidth(150)
+        d:SetClampedToScreen(true)
+
+        d.texture = d:CreateTexture(nil,"BACKGROUND")
+        --d.texture:SetColorTexture(0,0,0,0.8)
+        d.texture:SetAllPoints(d)
+
+        d:SetScript("OnLeave", function() d:Hide() end)
+        d:SetScript("OnShow", function() TalentedLDBPopulateDropdown(d) end)
+
+        d:Hide()
+
+        return d
+    end
+
+    function TalentedLDBPopulateDropdown(d)
+        if #TalentPool < 1 then d:Hide(); return end
+
+        if buttons and #buttons > 0 then
+            for i=1,#buttons do
+                buttons[i]:Hide()
+            end
+        end
+
+        buttons = {}
+        local button_height = 30
+
+        for i = 1, #TalentPool do
+            local b = CreateFrame("Button","TalentedLDBButton"..i,d)
+            b:SetHeight(button_height)
+            b:SetWidth(d:GetWidth()-8)
+            b:SetNormalFontObject("GameFontNormalSmall")
+            b:SetHighlightFontObject("GameFontHighlightSmall")
+            b:SetText(TalentPool[i].build_name)
+            b:SetFrameStrata("HIGH")
+
+                --NORMAL
+            local norm = b:CreateTexture()
+            norm:SetAllPoints(b)
+            if i % 2 ~= 0  then norm:SetColorTexture(0,0,0,0.7)
+                           else norm:SetColorTexture(0.1,0.1,0.1,0.9) end
+            b:SetNormalTexture(norm,"DISABLE")
+                --PUSHED
+            local pushed = b:CreateTexture()
+            pushed:SetColorTexture(0,0.5,0.5,0.8)
+            pushed:SetAllPoints(true)
+            b:SetPushedTexture(pushed)
+                --HIGHLIGHT
+            local highlight = b:CreateTexture()
+            highlight:SetColorTexture(0,1,1,0.8)
+            highlight:SetAllPoints(true)
+            b:SetHighlightTexture(highlight,"MOD")
+            --[[
+            --]]
+
+            if i == 1 then b:SetPoint("TOP",d,"TOP",0,-4)
+            else b:SetPoint("TOP",buttons[i-1],"BOTTOM",0,0) end
+
+            b:SetScript("OnClick",function() ApplyBuild(TalentPool[i].code,"PvE"); d:Hide() end)
+
+            buttons[i] = b
+        end
+
+        d:SetHeight((#buttons * button_height)+8)
+    end
+end
+
+
+
+
+
+
+
+--[[       Talented Options Loader         --]]
+function TalentedLoadOptions()
+    if TalentedOptions.squelch == 2 then ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end
+
+    TalentedOptions.pane = CreateFrame("Frame",nil,InterfaceOptionsFramePanelContainer)
+    local p = TalentedOptions.pane
+    p:Hide()
+
+    p:SetAllPoints()
+
+    p.name = Talented
+    p.okay = function(self) end
+    p.cancel = function(self) end
+    p.default = function(self) TalentedOptions = defaultops end
+
+    local title = p:CreateFontString(nil,"ARTWORK","GameFontNormalLarge")
+    --title:Hide()
+    title:SetText("Talented")
+    title:SetJustifyH("LEFT")
+    title:SetJustifyV("TOP")
+    title:SetPoint("TOPLEFT",16,-16)
+
+
+    --Squelch Dropdown
+    local squelch_label = p:CreateFontString(nil,"ARTWORK","GameFontHighlightSmall")
+    squelch_label:SetPoint("TOPLEFT",p,"TOPLEFT",16,-50)
+    squelch_label:SetText("When should "..Talented.." silence Talent-chat-spam?")
+
+    local dropdown = CreateFrame("Frame","TalentedSquelchSettings",p,"UIDropDownMenuTemplate")
+    dropdown:SetPoint("TOPLEFT",squelch_label,"BOTTOMLEFT",0,-10)
+    dropdown.initialize = function(d)
+        local squelch_settings = {"Never","Talented only","Always" }
+        for i = 1, #squelch_settings do
+            local b = UIDropDownMenu_CreateInfo()
+            b.text = squelch_settings[i]
+            b.value = i-1
+            b.func = function(self)
+                TalentedOptions.squelch = self.value
+                UIDropDownMenu_SetSelectedValue(d,self.value)
+                TalentedSquelchUpdate()
+            end
+            UIDropDownMenu_AddButton(b)
+        end
+        UIDropDownMenu_SetSelectedValue(d,TalentedOptions.squelch)
+    end
+    dropdown:HookScript("OnShow",dropdown.initialize)
+
+
+
+    --LDB Title
+    local ldb_title = CreateFrame("CheckButton","TalentedLDBTitleOption",p,"InterfaceOptionsCheckButtonTemplate")
+    ldb_title:SetPoint("TOPLEFT",dropdown,"BOTTOMLEFT",0,-25)
+    getglobal(ldb_title:GetName().."Text"):SetText("Title in LDB Plugin")
+    ldb_title.tooltipText = "Enable the "..Talented.." title in the LDB Broker display."
+    ldb_title:SetScript("OnClick", function(self)
+        --Button switches state THEN this is run
+        if self:GetChecked() then
+            TalentedOptions.ldb.title_on = true
+        else
+            TalentedOptions.ldb.title_on = false
+        end
+    end)
+    ldb_title:SetScript("OnShow", function(self) self:SetChecked(TalentedOptions.ldb.title_on) end)
+
+    InterfaceOptions_AddCategory(TalentedOptions.pane)
+end
+
+
+
+--[[  TIER FUNCTIONS AND UTILITIES   --]]
 
 function TalentedCreateTierIgnoreButtons(bin)
     bin.ignoreKeys = {}
@@ -436,4 +669,14 @@ function TalentedSquelch(self, event, msg,...)
     end
 
     return false
+end
+
+function TalentedSquelchUpdate()
+    local op = TalentedOptions.squelch
+
+    if op == 0 then
+        ChatFrame_RemoveMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch)
+    elseif op == 2 or op == 1 then
+        ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch)
+    end
 end

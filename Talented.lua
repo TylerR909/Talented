@@ -1,4 +1,4 @@
--- Talented release v1.1.5
+-- Talented release v1.2.0
 
 local addonName, addonTable = ...
 local Talented = "|cff00e0ffTalented|r"
@@ -384,8 +384,8 @@ function TalentedLoadLDB()
         type = "launcher",
         icon = "Interface\\Icons\\Ability_marksmanship",
         text = "Talented",
-        OnClick = function(_, button)
-            if not dropdown then dropdown = TalentedLDBDropdown() end
+        OnClick = function(p, button)
+            if not dropdown then dropdown = TalentedLDBDropdown(p) end
 
             if InCombatLockdown() then dropdown:Hide(); return end
 
@@ -439,7 +439,7 @@ function TalentedLoadLDB()
         return "Custom"
     end
 
-    function TalentedLDBDropdown(ldb)
+    function TalentedLDBDropdown(p)
         GameTooltip:Hide()
         GameTooltip:ClearLines()
 
@@ -447,10 +447,10 @@ function TalentedLoadLDB()
         --OptionsBoxTemplate
         --GlowBoxTemplate
         --if d:IsShown() then d:Hide(); return end
-        d:SetPoint("CENTER",UIParent,"CENTER")
+        d:ClearAllPoints()
+        d:SetPoint("TOP",p,"BOTTOM")
         d:SetFrameStrata("DIALOG")
         d:SetWidth(125)
-        d:SetParent(ldb)
         d:SetClampedToScreen(true)
 
         d.texture = d:CreateTexture(nil,"BACKGROUND")
@@ -467,9 +467,6 @@ function TalentedLoadLDB()
 
     function TalentedLDBPopulateDropdown(d)
         if #TalentPool < 1 then d:Hide(); return end
-        local mousex, mousey = GetCursorPosition()
-        d:SetPoint("TOP",UIParent,"BOTTOMLEFT",mousex,mousey-10)
-        --d:SetPoint("TOPLEFT",TalentedLDB,"BOTTOMLEFT")
 
         if buttons and #buttons > 0 then
             for i=1,#buttons do
@@ -478,7 +475,7 @@ function TalentedLoadLDB()
         end
 
         buttons = {}
-        local button_height = 20
+        local button_height = 30
 
         for i = 1, #TalentPool do
             local b = CreateFrame("Button","TalentedLDBButton"..i,d)
@@ -578,7 +575,6 @@ function TalentedLoadOptions()
     --LDB Title
     local ldb_title = CreateFrame("CheckButton","TalentedLDBTitleOption",p,"InterfaceOptionsCheckButtonTemplate")
     ldb_title:SetPoint("TOPLEFT",dropdown,"BOTTOMLEFT",0,-25)
-    --ldb_title:SetText("Title in LDB Plugin")
     getglobal(ldb_title:GetName().."Text"):SetText("Title in LDB Plugin")
     ldb_title.tooltipText = "Enable the "..Talented.." title in the LDB Broker display."
     ldb_title:SetScript("OnClick", function(self)

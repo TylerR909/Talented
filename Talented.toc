@@ -1,4 +1,4 @@
-## Interface: 70300
+## Interface: 70000
 ## Version: v1.2.0
 ## Title: Talented
 ## Notes: Save and swap talent builds on the fly.

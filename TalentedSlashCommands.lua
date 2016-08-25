@@ -69,9 +69,32 @@ function TalentedDeleteActive()
         current = TalentedDB[i]
         if current.class == UnitClass("player") and
            current.spec == GetSpecialization() and
+           current.mode_key == "PvE" and
            TalentedIsAnActiveSpec(current.code,active) then
 
                 print(Talented..": Deleting active build: "..current.build_name)
+                tremove(TalentedDB,i)
+                return true
+        end
+    end
+
+    return false
+end
+
+
+
+function TalentedDeleteActivePvP()
+    local active = TalentedPvpGetActiveBuild()
+    if TalentedDB == nil then return end
+
+    local current
+    for i = 1, #TalentedDB do
+        if current.class == UnitClass("player") and
+           current.spec == GetSpecialization() and
+           current.mode_key == "PvP" and
+           TalentedIsAnActiveSpec(current.code,active) then
+
+                    print(Talented..": Deleting active buil: "..current.build_name)
                 tremove(TalentedDB,i)
                 return true
         end

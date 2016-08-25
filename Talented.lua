@@ -204,17 +204,17 @@ function TalentedUpdateButtonText_OnUpdate(self,elapsed,mode)
         if (mode == "PvE") then
             value = TalentedGetActiveBuild()
         elseif (mode == "PvP") then
-            value = nil
+            value = TalentedPvpGetActiveBuild()
         end
-        TalentedUpdateButtonText(self,value)
+        TalentedUpdateButtonText(self,value,mode)
     end
     --TalentedSavedBuildsDropdownPvE
     --TalentedSavedBuildsDropdownPvP
 end
 
+--These functions (above/below) being two seperate enteties no longer makes sense. Could probably be condensed down easily. BLOAT
 
-
-function TalentedUpdateButtonText(self,build_code)
+function TalentedUpdateButtonText(self,build_code,mode)
     self.TimeSinceLastUpdate = 0;
 
     local target
@@ -223,7 +223,7 @@ function TalentedUpdateButtonText(self,build_code)
 
     if TalentPool then
         for i = 1, #TalentPool do
-            if TalentedIsAnActiveSpec(TalentPool[i].code,build_code) then
+            if TalentPool[i].mode_key == mode and TalentedIsAnActiveSpec(TalentPool[i].code,build_code) then
                 target = TalentPool[i].build_name
             end
         end

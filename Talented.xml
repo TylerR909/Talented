@@ -229,8 +229,10 @@
     <Scripts>
         <OnLoad>
             UIDropDownMenu_Initialize(self,TalentedInitDropdownPvE);
-            self.TimeSinceLastUpdate = 10; --Set it over threshold (0.3 at time of writing) o update on first viewing
         </OnLoad>
+        <OnShow>
+            self.TimeSinceLastUpdate = 10; --Set it over threshold (0.3 at time of writing) o update on first viewing
+        </OnShow>
         <OnUpdate>
             TalentedUpdateButtonText_OnUpdate(self,elapsed,"PvE")
         </OnUpdate>
@@ -247,8 +249,10 @@
     <Scripts>
         <OnLoad>
             UIDropDownMenu_Initialize(self,TalentedInitDropdownPvP)
-            self.TimeSinceLastUpdate = 10;
         </OnLoad>
+        <OnShow>
+            self.TimeSinceLastUpdate = 10; --Set it over threshold (0.3 at time of writing) o update on first viewing
+        </OnShow>
         <OnUpdate>
             TalentedUpdateButtonText_OnUpdate(self,elapsed,"PvP")
         </OnUpdate>

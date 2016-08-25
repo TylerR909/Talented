@@ -362,11 +362,16 @@ init:SetScript("OnEvent", TalentedLoad)
 
 function TalentedRefresh()
     --Inefficient but it works
+    TalentedUpdateTalentPool()
+
     if TalentedSavedBuildsDropdownPvE then
-        TalentedUpdateTalentPool()
         UIDropDownMenu_Initialize(TalentedSavedBuildsDropdownPvE,TalentedInitDropdownPvE)
-        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,TalentedGetActiveBuild())
-        --PvP Too
+        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,TalentedGetActiveBuild(),"PvE")
+    end
+
+    if TalentedSavedBuildsDropdownPvP then
+        UIDropDownMenu_Initialize(TalentedSavedBuildsDropdownPvP,TalentedInitDropdownPvP)
+        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvP,TalentedPvpGetActiveBuild(),"PvP")
     end
 end
 
@@ -389,7 +394,6 @@ function TalentedUpdateTalentPool()
         then
             local temp = {}
 
-            temp.spec = current.spec
             temp.build_name = current.build_name
             temp.code = current.code
             temp.mode = current.mode

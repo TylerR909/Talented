@@ -1,4 +1,4 @@
--- Talented release v1.2.0
+-- Talented beta v1.3
 
 local addonName, addonTable = ...
 local Talented = "|cff00e0ffTalented|r"
@@ -317,11 +317,11 @@ end
 
 
 
-function TalentedDeleteButton(self,arg1)
+function TalentedDeleteButton(self)
     -- PARAMETERS NEED TESTING, I'M NOT SURE THIS IS WHAT'S COMING IN
-    if (arg1 == "PvE") then
+    if self.arg1 == "PvE" then
         TalentedDeleteActive()
-    elseif arg1 == "PvP" then
+    elseif self.arg1 == "PvP" then
         TalentedDeleteActivePvP()
     end
 

@@ -223,13 +223,15 @@ function TalentedUpdateButtonText(self,build_code,mode)
 
     if TalentPool then
         for i = 1, #TalentPool do
-            if TalentPool[i].mode_key == mode and TalentedIsAnActiveSpec(TalentPool[i].code,build_code) then
+            if TalentPool[i].mode == mode and TalentedIsAnActiveSpec(TalentPool[i].code,build_code) then
                 target = TalentPool[i].build_name
             end
         end
     end
 
-    UIDropDownMenu_SetSelectedName(self,target)
+    --Won't update until after dropdown has been clicked at least once?
+    if not target then target = "Custom" end
+    UIDropDownMenu_SetText(self,target)
 end
 
 
@@ -261,7 +263,7 @@ function TalentedInitDropdown(self,mode_key)
                 dat.value = info.code
                 dat.arg1 = mode_key
                 dat.func = TalentedSelectBuild
-                local active = (TalentedGetActiveBuild() == info.code)
+                local active = TalentedIsAnActiveSpec(info.code,TalentedGetActiveBuild())
                 dat.checked = active
                 UIDropDownMenu_AddButton(dat);
                 added_something = true
@@ -304,21 +306,24 @@ function TalentedSelectBuild(self,arg1)
         return
     end
 
-    if (self.value == TalentedGetActiveBuild()) then return end
+    if (TalentedIsAnActiveSpec(self.value,TalentedGetActiveBuild())) then return end
 
     ApplyBuild(self.value,arg1)
 
+    -- Reset text-update timer so it doesn't run while build is being applied
+    -- and cause "Custom" swapping back and forth
     if arg1=="PvE" then
-        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,self.value) -- frame name and value to search for/set
+        TalentedSavedBuildsDropdownPvE.TimeSinceLastUpdate = 0
+        --TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,self.value) -- frame name and value to search for/set
     elseif arg1=="PvP" then
-        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvP,self.value)
+        TalentedSavedBuildsDropdownPvP.TimeSinceLastUpdate = 0
+        --TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvP,self.value)
     end
 end
 
 
 
 function TalentedDeleteButton(self)
-    -- PARAMETERS NEED TESTING, I'M NOT SURE THIS IS WHAT'S COMING IN
     if self.arg1 == "PvE" then
         TalentedDeleteActive()
     elseif self.arg1 == "PvP" then
@@ -346,10 +351,11 @@ local function TalentedLoad(self, event, ...)
         TalentedLoadOptions()
         TalentedUpdateTalentPool()
         TalentedLoadLDB()
+        print(Talented..": You are using a BETA version of "..Talented..". This is the PvP Update. Please report bugs on the Curse project page, or set your Preferred Release Type to 'Release' on the Curse Client. Thanks, and I hope you enjoy "..Talented.."!")
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
         TalentedUpdateTalentPool()
     elseif ... == "Blizzard_TalentUI" then
-        CreateFrame("Frame","TalentedSavedBuildsDropdownPvE", PlayerTalentFrameTalents,"TalentedPvETemplate")
+        CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",_,"TalentedPvETemplate")
         TalentedSavedBuildsDropdownPvE:Show()
 
         CreateFrame("Frame","TalentedSavedBuildsDropdownPvP",_,"TalentedPvpTemplate") -- Might have to properly parent PlayerTalentFramePvpTalents
@@ -418,7 +424,7 @@ function TalentedLoadLDB()
     local update_interval, elapsed = 1.5,0
     local dropdown, buttons
 
-    ldb = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Talented", {
+    ldb = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Talented PvE", {
         type = "launcher",
         icon = "Interface\\Icons\\Ability_marksmanship",
         text = "Talented",
@@ -516,7 +522,7 @@ function TalentedLoadLDB()
         local button_height = 30
 
         for i = 1, #TalentPool do
-            if TalentPool[i].mode_key == "PvE" then --Crude
+            if TalentPool[i].mode == "PvE" then --Crude
                 local b = CreateFrame("Button","TalentedLDBButton"..i,d)
                 b:SetHeight(button_height)
                 b:SetWidth(d:GetWidth()-8)

@@ -355,10 +355,10 @@ local function TalentedLoad(self, event, ...)
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
         TalentedUpdateTalentPool()
     elseif ... == "Blizzard_TalentUI" then
-        CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",_,"TalentedPvETemplate")
+        CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",PlayerTalentFrameTalents,"TalentedPvETemplate")
         TalentedSavedBuildsDropdownPvE:Show()
 
-        CreateFrame("Frame","TalentedSavedBuildsDropdownPvP",_,"TalentedPvpTemplate") -- Might have to properly parent PlayerTalentFramePvpTalents
+        CreateFrame("Frame","TalentedSavedBuildsDropdownPvP",PlayerTalentFramePVPTalents,"TalentedPvpTemplate") -- Might have to properly parent PlayerTalentFramePvpTalents
         TalentedSavedBuildsDropdownPvP:Show()
     end
 end
@@ -394,8 +394,7 @@ function TalentedUpdateTalentPool()
     for i = 1, #TalentedDB do
         current = TalentedDB[i]
 
-        if current.player_name == GetUnitName("player") and
-           current.class == UnitClass("player") and
+        if current.class == UnitClass("player") and
            current.spec == GetSpecialization()
         then
             local temp = {}

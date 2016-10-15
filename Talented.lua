@@ -360,6 +360,7 @@ local function TalentedLoad(self, event, ...)
 
         CreateFrame("Frame","TalentedSavedBuildsDropdownPvP",PlayerTalentFramePVPTalents,"TalentedPvpTemplate") -- Might have to properly parent PlayerTalentFramePvpTalents
         TalentedSavedBuildsDropdownPvP:Show()
+        TalentedRClickInit()
     end
 end
 init:SetScript("OnEvent", TalentedLoad)
@@ -405,6 +406,22 @@ function TalentedUpdateTalentPool()
 
             tinsert(TalentPool,temp)
         end
+    end
+end
+
+function TalentedRClickInit()
+    local btn = { PlayerTalentFrameSpecializationSpecButton1,
+                  PlayerTalentFrameSpecializationSpecButton2,
+                  PlayerTalentFrameSpecializationSpecButton3,
+                  PlayerTalentFrameSpecializationSpecButton4 }
+
+    for i = 1, GetNumSpecializations() do
+        btn[i]:RegisterForClicks("RightButtonUp")
+
+        btn[i]:HookScript("OnClick",function(self,button,down)
+            if button ~= "RightButton" then return end
+            if (i ~= GetSpecialization()) then SetSpecialization(i) end
+        end)
     end
 end
 

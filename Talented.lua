@@ -1,4 +1,4 @@
--- Talented beta v1.3
+-- Talented v1.3
 
 local addonName, addonTable = ...
 local Talented = "|cff00e0ffTalented|r"
@@ -351,7 +351,6 @@ local function TalentedLoad(self, event, ...)
         TalentedLoadOptions()
         TalentedUpdateTalentPool()
         TalentedLoadLDB()
-        print(Talented..": You are using a BETA version of "..Talented..". This is the PvP Update. Please report bugs on the Curse project page, or set your Preferred Release Type to 'Release' on the Curse Client. Thanks, and I hope you enjoy "..Talented.."!")
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
         TalentedUpdateTalentPool()
     elseif ... == "Blizzard_TalentUI" then

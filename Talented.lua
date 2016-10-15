@@ -1,10 +1,10 @@
--- Talented release v1.2.0
+-- Talented v1.3
 
 local addonName, addonTable = ...
 local Talented = "|cff00e0ffTalented|r"
 local Talented_UpdateInterval = 0.3;
 local MaxTalentTier, PvpMaxTalentTier = 7,6
-local TalentPool, ldb
+local TalentPool, TalentPvpPool, ldb
 local Talented_ClassColors = {
     WARRIOR = "|cffc79c6e",
     PALADIN = "|cfff58cba",
@@ -114,6 +114,7 @@ local function ApplyBuild(build,mode_key)
     if TalentedOptions.squelch ~= 0 then
         ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end
 
+
     if mode_key == "PvE" then
         for i = 1, #build do
             local s = build:sub(i,i)
@@ -125,6 +126,25 @@ local function ApplyBuild(build,mode_key)
             if s ~= "0" then LearnPvpTalents(GetPvpTalentInfo(i,s,1)) end
         end
     end
+
+    --[[
+    local learn, info
+
+    if mode_key == "PvE" then
+        learn = LearnTalents
+        info = GetTalentInfo
+        -- learn, info = LearnTalents, GetTalentInfo
+    elseif mode_key == "PvP" then
+        learn == LearnPvpTalents
+        info = GetPvpTalentInfo
+        -- learn, info = LearnPvpTalents, GetPvpTalentInfo
+    end
+
+    for i = 1, #build do
+        local s = build:sub(i,i)
+        if s ~= "0" then learn(info(i,s,1))
+    end
+    --]]
 
     if TalentedOptions.squelch ~= 2 then
         C_Timer.After(1,function () ChatFrame_RemoveMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end) end
@@ -184,17 +204,17 @@ function TalentedUpdateButtonText_OnUpdate(self,elapsed,mode)
         if (mode == "PvE") then
             value = TalentedGetActiveBuild()
         elseif (mode == "PvP") then
-            value = nil
+            value = TalentedPvpGetActiveBuild()
         end
-        TalentedUpdateButtonText(self,value)
+        TalentedUpdateButtonText(self,value,mode)
     end
     --TalentedSavedBuildsDropdownPvE
     --TalentedSavedBuildsDropdownPvP
 end
 
+--These functions (above/below) being two seperate enteties no longer makes sense. Could probably be condensed down easily. BLOAT
 
-
-function TalentedUpdateButtonText(self,build_code)
+function TalentedUpdateButtonText(self,build_code,mode)
     self.TimeSinceLastUpdate = 0;
 
     local target
@@ -203,13 +223,15 @@ function TalentedUpdateButtonText(self,build_code)
 
     if TalentPool then
         for i = 1, #TalentPool do
-            if TalentedIsAnActiveSpec(TalentPool[i].code,build_code) then
+            if TalentPool[i].mode == mode and TalentedIsAnActiveSpec(TalentPool[i].code,build_code) then
                 target = TalentPool[i].build_name
             end
         end
     end
 
-    UIDropDownMenu_SetSelectedName(self,target)
+    --Won't update until after dropdown has been clicked at least once?
+    if not target then target = "Custom" end
+    UIDropDownMenu_SetText(self,target)
 end
 
 
@@ -241,7 +263,7 @@ function TalentedInitDropdown(self,mode_key)
                 dat.value = info.code
                 dat.arg1 = mode_key
                 dat.func = TalentedSelectBuild
-                local active = (TalentedGetActiveBuild() == info.code)
+                local active = TalentedIsAnActiveSpec(info.code,TalentedGetActiveBuild())
                 dat.checked = active
                 UIDropDownMenu_AddButton(dat);
                 added_something = true
@@ -267,9 +289,11 @@ function TalentedInitDropdown(self,mode_key)
     --dat.icon = "Spell_chargepositive.png"
     UIDropDownMenu_AddButton(dat)
 
+    --Add delete button
     dat.text = "Delete Active Build"
     dat.colorCode = "|cffff0000"
     dat.value = nil
+    dat.arg1 = mode_key
     dat.func = TalentedDeleteButton
     UIDropDownMenu_AddButton(dat)
 end
@@ -282,21 +306,30 @@ function TalentedSelectBuild(self,arg1)
         return
     end
 
-    if (self.value == TalentedGetActiveBuild()) then return end
+    if (TalentedIsAnActiveSpec(self.value,TalentedGetActiveBuild())) then return end
 
     ApplyBuild(self.value,arg1)
 
+    -- Reset text-update timer so it doesn't run while build is being applied
+    -- and cause "Custom" swapping back and forth
     if arg1=="PvE" then
-        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,self.value) -- frame name and value to search for/set
+        TalentedSavedBuildsDropdownPvE.TimeSinceLastUpdate = 0
+        --TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,self.value) -- frame name and value to search for/set
     elseif arg1=="PvP" then
-        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvP,self.value)
+        TalentedSavedBuildsDropdownPvP.TimeSinceLastUpdate = 0
+        --TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvP,self.value)
     end
 end
 
 
 
-function TalentedDeleteButton()
-    TalentedDeleteActive()
+function TalentedDeleteButton(self)
+    if self.arg1 == "PvE" then
+        TalentedDeleteActive()
+    elseif self.arg1 == "PvP" then
+        TalentedDeleteActivePvP()
+    end
+
     TalentedRefresh()
 end
 
@@ -321,9 +354,12 @@ local function TalentedLoad(self, event, ...)
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
         TalentedUpdateTalentPool()
     elseif ... == "Blizzard_TalentUI" then
-        CreateFrame("Frame","TalentedSavedBuildsDropdownPvE", PlayerTalentFrameTalents,"TalentedPvETemplate")
+        CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",PlayerTalentFrameTalents,"TalentedPvETemplate")
         TalentedSavedBuildsDropdownPvE:Show()
-        --PvP too
+
+        CreateFrame("Frame","TalentedSavedBuildsDropdownPvP",PlayerTalentFramePVPTalents,"TalentedPvpTemplate") -- Might have to properly parent PlayerTalentFramePvpTalents
+        TalentedSavedBuildsDropdownPvP:Show()
+        TalentedRClickInit()
     end
 end
 init:SetScript("OnEvent", TalentedLoad)
@@ -332,11 +368,16 @@ init:SetScript("OnEvent", TalentedLoad)
 
 function TalentedRefresh()
     --Inefficient but it works
+    TalentedUpdateTalentPool()
+
     if TalentedSavedBuildsDropdownPvE then
-        TalentedUpdateTalentPool()
         UIDropDownMenu_Initialize(TalentedSavedBuildsDropdownPvE,TalentedInitDropdownPvE)
-        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,TalentedGetActiveBuild())
-        --PvP Too
+        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,TalentedGetActiveBuild(),"PvE")
+    end
+
+    if TalentedSavedBuildsDropdownPvP then
+        UIDropDownMenu_Initialize(TalentedSavedBuildsDropdownPvP,TalentedInitDropdownPvP)
+        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvP,TalentedPvpGetActiveBuild(),"PvP")
     end
 end
 
@@ -344,6 +385,7 @@ end
 
 function TalentedUpdateTalentPool()
     TalentPool = {}
+    TalentPvpPool = {}
 
     if TalentedDB == nil or #TalentedDB < 1 then return end
 
@@ -352,19 +394,33 @@ function TalentedUpdateTalentPool()
     for i = 1, #TalentedDB do
         current = TalentedDB[i]
 
-        if current.player_name == GetUnitName("player") and
-           current.class == UnitClass("player") and
+        if current.class == UnitClass("player") and
            current.spec == GetSpecialization()
         then
             local temp = {}
 
-            temp.spec = current.spec
             temp.build_name = current.build_name
             temp.code = current.code
             temp.mode = current.mode
 
             tinsert(TalentPool,temp)
         end
+    end
+end
+
+function TalentedRClickInit()
+    local btn = { PlayerTalentFrameSpecializationSpecButton1,
+                  PlayerTalentFrameSpecializationSpecButton2,
+                  PlayerTalentFrameSpecializationSpecButton3,
+                  PlayerTalentFrameSpecializationSpecButton4 }
+
+    for i = 1, GetNumSpecializations() do
+        btn[i]:RegisterForClicks("RightButtonUp")
+
+        btn[i]:HookScript("OnClick",function(self,button,down)
+            if button ~= "RightButton" then return end
+            if (i ~= GetSpecialization()) then SetSpecialization(i) end
+        end)
     end
 end
 
@@ -383,7 +439,7 @@ function TalentedLoadLDB()
     local update_interval, elapsed = 1.5,0
     local dropdown, buttons
 
-    ldb = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Talented", {
+    ldb = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Talented PvE", {
         type = "launcher",
         icon = "Interface\\Icons\\Ability_marksmanship",
         text = "Talented",
@@ -481,39 +537,41 @@ function TalentedLoadLDB()
         local button_height = 30
 
         for i = 1, #TalentPool do
-            local b = CreateFrame("Button","TalentedLDBButton"..i,d)
-            b:SetHeight(button_height)
-            b:SetWidth(d:GetWidth()-8)
-            b:SetNormalFontObject("GameFontNormalSmall")
-            b:SetHighlightFontObject("GameFontHighlightSmall")
-            b:SetText(TalentPool[i].build_name)
-            b:SetFrameStrata("HIGH")
+            if TalentPool[i].mode == "PvE" then --Crude
+                local b = CreateFrame("Button","TalentedLDBButton"..i,d)
+                b:SetHeight(button_height)
+                b:SetWidth(d:GetWidth()-8)
+                b:SetNormalFontObject("GameFontNormalSmall")
+                b:SetHighlightFontObject("GameFontHighlightSmall")
+                b:SetText(TalentPool[i].build_name)
+                b:SetFrameStrata("HIGH")
 
-                --NORMAL
-            local norm = b:CreateTexture()
-            norm:SetAllPoints(b)
-            if i % 2 ~= 0  then norm:SetColorTexture(0,0,0,0.7)
-                           else norm:SetColorTexture(0.1,0.1,0.1,0.9) end
-            b:SetNormalTexture(norm,"DISABLE")
-                --PUSHED
-            local pushed = b:CreateTexture()
-            pushed:SetColorTexture(0,0.5,0.5,0.8)
-            pushed:SetAllPoints(true)
-            b:SetPushedTexture(pushed)
-                --HIGHLIGHT
-            local highlight = b:CreateTexture()
-            highlight:SetColorTexture(0,1,1,0.8)
-            highlight:SetAllPoints(true)
-            b:SetHighlightTexture(highlight,"MOD")
-            --[[
-            --]]
+                    --NORMAL
+                local norm = b:CreateTexture()
+                norm:SetAllPoints(b)
+                if i % 2 ~= 0  then norm:SetColorTexture(0,0,0,0.7)
+                               else norm:SetColorTexture(0.1,0.1,0.1,0.9) end
+                b:SetNormalTexture(norm,"DISABLE")
+                    --PUSHED
+                local pushed = b:CreateTexture()
+                pushed:SetColorTexture(0,0.5,0.5,0.8)
+                pushed:SetAllPoints(true)
+                b:SetPushedTexture(pushed)
+                    --HIGHLIGHT
+                local highlight = b:CreateTexture()
+                highlight:SetColorTexture(0,1,1,0.8)
+                highlight:SetAllPoints(true)
+                b:SetHighlightTexture(highlight,"MOD")
+                --[[
+                --]]
 
-            if i == 1 then b:SetPoint("TOP",d,"TOP",0,-4)
-            else b:SetPoint("TOP",buttons[i-1],"BOTTOM",0,0) end
+                if i == 1 then b:SetPoint("TOP",d,"TOP",0,-4)
+                else b:SetPoint("TOP",buttons[i-1],"BOTTOM",0,0) end
 
-            b:SetScript("OnClick",function() ApplyBuild(TalentPool[i].code,"PvE"); d:Hide() end)
+                b:SetScript("OnClick",function() ApplyBuild(TalentPool[i].code,"PvE"); d:Hide() end)
 
-            buttons[i] = b
+                buttons[i] = b
+            end
         end
 
         d:SetHeight((#buttons * button_height)+8)
@@ -614,9 +672,9 @@ function TalentedPrepKeys(repo,build_code)
     local maxKeysToShow = #build_code
 
     for i = 1,#repo do
-        repo[i]:Show()
+        repo[i]:Show() --OnShow resets on/off state to a Standard
 
-        if i > maxKeysToShow then repo[i]:Hide() end
+        if i > maxKeysToShow then repo[i]:Hide() end -- Hide for inactive/unnecessary buttons
     end
 
     if maxKeysToShow == 0 then TalentedPopup:SetHeight(105)

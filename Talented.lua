@@ -415,7 +415,7 @@ function TalentedRClickInit()
                   PlayerTalentFrameSpecializationSpecButton4 }
 
     for i = 1, GetNumSpecializations() do
-        btn[i]:RegisterForClicks("RightButtonUp")
+        btn[i]:RegisterForClicks("LeftButtonUp","RightButtonUp")
 
         btn[i]:HookScript("OnClick",function(self,button,down)
             if button ~= "RightButton" then return end

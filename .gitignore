@@ -1,8 +1,5 @@
 *.png
-.idea/copyright/profiles_settings.xml
-.idea/misc.xml
-.idea/modules.xml
-.idea/workspace.xml
-.idea/compiler.xml
-.idea/Talented.iml
-.idea/vcs.xml
+.idea/*
+/Screenshots
+
+

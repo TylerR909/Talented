@@ -544,7 +544,7 @@ function TalentedLoadLDB()
                 b:SetNormalFontObject("GameFontNormalSmall")
                 b:SetHighlightFontObject("GameFontHighlightSmall")
                 b:SetText(TalentPool[i].build_name)
-                b:SetFrameStrata("HIGH")
+                b:SetFrameStrata("TOOLTIP")
 
                     --NORMAL
                 local norm = b:CreateTexture()

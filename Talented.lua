@@ -1,6 +1,6 @@
 -- Talented v1.3
 
-local addonName, addonTable = ...
+local addonName, tal = ...
 local Talented = "|cff00e0ffTalented|r"
 local Talented_UpdateInterval = 0.3;
 local MaxTalentTier, PvpMaxTalentTier = 7,6

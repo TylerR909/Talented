@@ -10,25 +10,26 @@ local defaultops = {
 }
 
 function tal:ParseConfig() 
-    local config = tal.config;
-    function checkSetOption(opt,dopt) 
-        -- foreach i in 
-        -- if type(elem) == "table" then
-        -- end
-    end
-    if config then
-        -- config.version = GetAddonMetadata(talname,"Version")
-        if not squelch then
-            squelch = defaultops.squelch
+    -- Recursve through defaults and verify that instances of the options exist
+    function checkSetOption(opt,defaults) 
+        if type(defaults) == "table" then opt = {}
+        else return defaults end
+
+        for k, v in pairs(defaults) do
+            if type(v) == "table" then
+                opt[k] = checkSetOptions(opt[k],v)
+            elseif type(v) ~= type(opt[k]) then
+                opt[k] = v
+            end
         end
-        if not config.ldb then 
-            config.ldb = defaultops.ldb
-        else
-            -- check each piece of config.ldb 
-        end
-        -- check that each option exists
-    else
-        tal.config = defaultops;
+        return opt
     end
 
+    -- Verify config is set up
+    if tal.config then
+        tal.config = checkSetOption(tal.config,defaultops)
+    else
+        tal.config = {}
+        tal.config = defaultops;
+    end
 end

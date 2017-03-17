@@ -1,5 +1,6 @@
 *.png
 .idea/*
 /Screenshots
+.vscode/*
 
 

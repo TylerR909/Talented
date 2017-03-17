@@ -9,13 +9,13 @@ local defaultops = {
     }
 }
 
-function tal:ParseConfig() {
+function tal:ParseConfig() 
     local config = tal.config;
-    function checkSetOption(opt,dopt) {
+    function checkSetOption(opt,dopt) 
         -- foreach i in 
         -- if type(elem) == "table" then
         -- end
-    }
+    end
     if config then
         -- config.version = GetAddonMetadata(talname,"Version")
         if not squelch then
@@ -31,4 +31,4 @@ function tal:ParseConfig() {
         tal.config = defaultops;
     end
 
-}
+end

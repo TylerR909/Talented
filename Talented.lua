@@ -344,22 +344,25 @@ init:RegisterEvent("ADDON_LOADED")
 init:RegisterEvent("VARIABLES_LOADED")
 init:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 local function TalentedLoad(self, event, ...)
-    if event == "VARIABLES_LOADED" then
+    if event == "ACTIVE_TALENT_GROUP_CHANGED" then 
+        TalentedUpdateTalentPool()
+    elseif event == "VARIABLES_LOADED" then
         TalentedOptions = TalentedOptions or defaultops
         TalentedCreateTierIgnoreButtons(TalentedPopupButton)
         TalentedDB = TalentedDB or {}
         TalentedLoadOptions()
         TalentedUpdateTalentPool()
         TalentedLoadLDB()
-    elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
-        TalentedUpdateTalentPool()
-    elseif ... == "Blizzard_TalentUI" then
+        init:UnregisterEvent("VARIABLES_LOADED")
+    -- elseif ... == "Blizzard_TalentUI" then
+    elseif event == "ADDON_LOADED" and ... == "Blizzard_TalentUI" then
         CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",PlayerTalentFrameTalents,"TalentedPvETemplate")
         TalentedSavedBuildsDropdownPvE:Show()
 
         CreateFrame("Frame","TalentedSavedBuildsDropdownPvP",PlayerTalentFramePVPTalents,"TalentedPvpTemplate") -- Might have to properly parent PlayerTalentFramePvpTalents
         TalentedSavedBuildsDropdownPvP:Show()
         TalentedRClickInit()
+        init:UnregisterEvent("ADDON_LOADED")
     end
 end
 init:SetScript("OnEvent", TalentedLoad)

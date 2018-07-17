@@ -123,7 +123,7 @@ local function ApplyBuild(build,mode_key)
     elseif mode_key == "PvP" then
         for i = 1, #build do
             local s = build:sub(i,i)
-            if s ~= "0" then LearnPvpTalents(GetPvpTalentInfo(i,s,1)) end
+            -- if s ~= "0" then LearnPvpTalents(GetPvpTalentInfo(i,s,1)) end
         end
     end
 
@@ -165,21 +165,6 @@ function TalentedGetActiveBuild()
     return active_spec
 end
 
-function TalentedPvpGetActiveBuild()
-    local active_spec = ""
-
-    for tier = 1, PvpMaxTalentTier do
-        for column = 1,3 do
-            local _,_,_,active = GetPvpTalentInfo(tier,column,1)
-            if active == true then active_spec = active_spec..column end
-        end
-    end
-
-    return active_spec
-end
-
-
-
 function TalentedIsAnActiveSpec(code,active)
     if #code ~= #active then return false end
 
@@ -200,12 +185,7 @@ function TalentedUpdateButtonText_OnUpdate(self,elapsed,mode)
     self.TimeSinceLastUpdate = self.TimeSinceLastUpdate + elapsed;
 
     if (self.TimeSinceLastUpdate > Talented_UpdateInterval) then
-        local value
-        if (mode == "PvE") then
-            value = TalentedGetActiveBuild()
-        elseif (mode == "PvP") then
-            value = TalentedPvpGetActiveBuild()
-        end
+        local value = TalentedGetActiveBuild()
         TalentedUpdateButtonText(self,value,mode)
     end
     --TalentedSavedBuildsDropdownPvE
@@ -239,14 +219,6 @@ end
 function TalentedInitDropdownPvE(self)
     TalentedInitDropdown(self,"PvE")
 end
-
-
-
-function TalentedInitDropdownPvP(self)
-    TalentedInitDropdown(self,"PvP")
-end
-
-
 
 function TalentedInitDropdown(self,mode_key)
     local dat = {}
@@ -312,23 +284,13 @@ function TalentedSelectBuild(self,arg1)
 
     -- Reset text-update timer so it doesn't run while build is being applied
     -- and cause "Custom" swapping back and forth
-    if arg1=="PvE" then
-        TalentedSavedBuildsDropdownPvE.TimeSinceLastUpdate = 0
-        --TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,self.value) -- frame name and value to search for/set
-    elseif arg1=="PvP" then
-        TalentedSavedBuildsDropdownPvP.TimeSinceLastUpdate = 0
-        --TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvP,self.value)
-    end
+    TalentedSavedBuildsDropdownPvE.TimeSinceLastUpdate = 0
 end
 
 
 
 function TalentedDeleteButton(self)
-    if self.arg1 == "PvE" then
-        TalentedDeleteActive()
-    elseif self.arg1 == "PvP" then
-        TalentedDeleteActivePvP()
-    end
+    TalentedDeleteActive()
 
     TalentedRefresh()
 end
@@ -359,8 +321,6 @@ local function TalentedLoad(self, event, ...)
         CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",PlayerTalentFrameTalents,"TalentedPvETemplate")
         TalentedSavedBuildsDropdownPvE:Show()
 
-        CreateFrame("Frame","TalentedSavedBuildsDropdownPvP",PlayerTalentFramePVPTalents,"TalentedPvpTemplate") -- Might have to properly parent PlayerTalentFramePvpTalents
-        TalentedSavedBuildsDropdownPvP:Show()
         TalentedRClickInit()
         init:UnregisterEvent("ADDON_LOADED")
     end
@@ -377,18 +337,12 @@ function TalentedRefresh()
         UIDropDownMenu_Initialize(TalentedSavedBuildsDropdownPvE,TalentedInitDropdownPvE)
         TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,TalentedGetActiveBuild(),"PvE")
     end
-
-    if TalentedSavedBuildsDropdownPvP then
-        UIDropDownMenu_Initialize(TalentedSavedBuildsDropdownPvP,TalentedInitDropdownPvP)
-        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvP,TalentedPvpGetActiveBuild(),"PvP")
-    end
 end
 
 
 
 function TalentedUpdateTalentPool()
     TalentPool = {}
-    TalentPvpPool = {}
 
     if TalentedDB == nil or #TalentedDB < 1 then return end
 

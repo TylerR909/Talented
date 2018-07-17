@@ -128,11 +128,7 @@
                     self:GetNormalTexture():SetVertexColor(0,1,1)
                 </OnEnter>
                 <OnShow>
-                    if self.mode_key == "PvE" then
-                        TalentedPrepKeys(self.ignoreKeys,TalentedGetActiveBuild())
-                    elseif self.mode_key == "PvP" then
-                        TalentedPrepKeys(self.ignoreKeys,TalentedPvpGetActiveBuild())
-                    end
+                    TalentedPrepKeys(self.ignoreKeys,TalentedGetActiveBuild())
                 </OnShow>
                 <OnLeave>
                     self:GetNormalTexture():SetVertexColor(1,1,1)
@@ -140,11 +136,7 @@
                 <OnClick>
                     --TODO: Code Cleanup: Rerun GetTalentSpec in case user changed talents in important tiers while saving?
                     local tierIgnoreCode = TalentedProcessIgnoreKeys(self.ignoreKeys)
-                    local build_code
-
-                    if self.mode_key == "PvE" then build_code = TalentedIgnoreSmush(TalentedGetActiveBuild(),tierIgnoreCode)
-                    elseif self.mode_key == "PvP" then build_code = TalentedIgnoreSmush(TalentedPvpGetActiveBuild(),tierIgnoreCode) end
-
+                    local build_code =TalentedIgnoreSmush(TalentedGetActiveBuild(),tierIgnoreCode)
                     TalentedSaveActiveBuild(build_code,self.mode_key,TalentedPopupInput:GetText())
                     HideParentPanel(self);
                 </OnClick>
@@ -221,8 +213,8 @@
 <Button name="TalentedPvETemplate" inherits="UIDropDownMenuTemplate" parent="PlayerTalentFrameTalents" virtual="true" hidden="true">
     <!--Should inherit TalentedSavedBuildsDropdownTemplate but that functionality isn't well-understood enough yet!-->
     <Anchors>
-        <Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT">
-            <Offset x="-110" y="0" />
+        <Anchor point="TOPRIGHT" relativePoint="TOPLEFT" relativeTo="PlayerTalentFrameTalentsPvpTalentButton">
+            <Offset x="-200" y="0" />
         </Anchor>
     </Anchors>
 
@@ -238,31 +230,6 @@
         </OnUpdate>
     </Scripts>
 </Button>
-
-<Button name="TalentedPvpTemplate" inherits="UIDropDownMenuTemplate" parent="PlayerTalentFramePVPTalents" virtual="true" hidden="true">
-    <Anchors>
-        <Anchor point="BOTTOMRIGHT">
-            <Offset x="-108" y="-29" />
-        </Anchor>
-    </Anchors>
-
-    <Scripts>
-        <OnLoad>
-            UIDropDownMenu_Initialize(self,TalentedInitDropdownPvP)
-        </OnLoad>
-        <OnShow>
-            self.TimeSinceLastUpdate = 10; --Set it over threshold (0.3 at time of writing) o update on first viewing
-        </OnShow>
-        <OnUpdate>
-            TalentedUpdateButtonText_OnUpdate(self,elapsed,"PvP")
-        </OnUpdate>
-
-    </Scripts>
-</Button>
-
-
-
-
 
     <!-- PlayerTalentFrameTalents !-->
     <!-- PlayerTalentFramePVPTalents!-->

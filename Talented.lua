@@ -3,17 +3,17 @@ local AddonName, Addon = ...
 Talented = LibStub("AceAddon-3.0"):NewAddon(AddonName, "AceEvent-3.0", "AceConsole-3.0")
 local AceGUI = LibStub("AceGUI-3.0")
 
-function Talented:Debug(msg)
-    if self.debug then
-        self:Print(msg)
-    end
-end
-
 function Talented:OnInitialize()
+    self:InitOpts()
     -- local f = AceGUI:Create("Frame")
     -- f:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end)
     -- f:SetTitle("Talented")
     self:SeedUI()
+    -- self:SaveActiveBuild()
+end
+
+function Talented:SaveActiveBuild()
+    self:OpenSaveFrame(self:GenerateActiveBuild())
 end
 
 function Talented:SeedUI()
@@ -29,25 +29,20 @@ function Talented:SeedUI()
     end
 end
 
-function Talented:InitUI()
-    self:Print("Initializing")
-    self.InitRightClickSpecSwapButtons()
-    self:Print("Initialized")
-end
-
-function Talented.InitRightClickSpecSwapButtons()
-    local btnHeader = "PlayerTalentFrameSpecializationSpecButton"
-
-    for i=1, GetNumSpecializations() do
-        local btn = _G[btnHeader..i]
-        btn:RegisterForClicks("LeftButtonUp","RightButtonUp")
-        btn:HookScript("OnClick", function(self, button, down) 
-            if button ~= "RightButton" then return end
-            if i ~= GetSpecialization() then SetSpecialization(i) end
-        end)
-    end
+function Talented:GenerateActiveBuild()
+    return {
+        name = '',
+        talents = self.tools.GetActiveTalentString(),
+        pvpTalents = self.tools.GetActivePvpTalentIDs(),
+        pvpTalentsEnabled = true
+    }
 end
 
 --@do-not-package@
     Talented.debug = true
 --@end-do-not-package@
+
+-- /tinspect C_SpecializationInfo has lots of PVP Talent stuff we need
+-- LearnPvpTalent(spellId, slotNumber)
+-- local { 3494, 161, 155, 3509 } = C_SpecializationInfo.GetAllSelectedPvpTalentIDs()
+-- local selectedTalentForTier = GetTalentTierInfo(tier, 1)

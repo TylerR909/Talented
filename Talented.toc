@@ -8,4 +8,8 @@
 embeds.xml
 
 Talented.lua
+TalentedTools.lua
 TalentedOptions.lua
+TalentedSaveFrame.lua
+TalentedTalentFrame.lua
+TalentedDropdown.lua

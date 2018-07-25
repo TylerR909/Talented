@@ -5,10 +5,7 @@
 ## Author: TylerR909: Shibang, US-Korialstrasz
 ## SavedVariables: TalentedDB, TalentedOptions
 
-libs\LibStub.lua
-libs\CallbackHandler-1.0.lua
-libs\LibDataBroker-1.1.lua
+embeds.xml
 
-TalentedLib.lua
-Talented.xml
-TalentedSlashCommands.lua
+Talented.lua
+TalentedOptions.lua

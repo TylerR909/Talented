@@ -83,7 +83,7 @@ function Talented:InitPvEDropdown()
     tinsert(menu, {
         text=DELETE,
         colorCode="|cffff0000",
-        func = function() self:DeleteActivePvEBuild() end,
+        func = function() self:DeleteMatchingBuilds("PvE", activeBuild, compare) end,
         notCheckable=true
     })
 
@@ -97,6 +97,7 @@ function Talented:InitPvPDropdown()
     GameTooltip:Hide()
     local specid = self.tools.ActiveSpecID()
     local activeBuild = self.tools.GetActivePvPTalentIDs()
+    local compare = self.tools.ComparePvPTalentBuilds
     local menu = {
         { text = PVP..' '..TALENTS, isTitle=true, notCheckable=true}
     }
@@ -105,7 +106,7 @@ function Talented:InitPvPDropdown()
         local btn = {
             text = build.name,
             value = build.build,
-            checked = self.tools.ComparePvPTalentBuilds(build.build, activeBuild),
+            checked = compare(build.build, activeBuild),
             func = function(btn) self.tools.LearnPvPTalentGroup(btn.value) end
         }
         tinsert(menu, btn)
@@ -125,7 +126,7 @@ function Talented:InitPvPDropdown()
     tinsert(menu, {
         text=DELETE,
         colorCode="|cffff0000",
-        func = function() self:DeleteActivePvPBuild() end,
+        func = function() self:DeleteMatchingBuilds("PvP", activeBuild, compare) end,
         notCheckable=true
     })
 

@@ -40,7 +40,6 @@ function tools.GetActivePvPTalentIDs()
 end
 
 function tools.CompareTalentStrings(a,b)
-    Talented:Debug(("Comparing %s to %s"):format(a,b))
     if #a ~= #b then return false end
     local chara, charb;
     for i=1, #a do

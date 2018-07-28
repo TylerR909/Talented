@@ -83,7 +83,7 @@ function Talented:InitPvEDropdown()
     tinsert(menu, {
         text=DELETE,
         colorCode="|cffff0000",
-        func = function() end,
+        func = function() self:DeleteActivePvEBuild() end,
         notCheckable=true
     })
 
@@ -125,7 +125,7 @@ function Talented:InitPvPDropdown()
     tinsert(menu, {
         text=DELETE,
         colorCode="|cffff0000",
-        func = function() end,
+        func = function() self:DeleteActivePvPBuild() end,
         notCheckable=true
     })
 

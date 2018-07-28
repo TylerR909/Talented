@@ -46,6 +46,52 @@ function Talented:CommitBuild(build, key)
     classTable[specid][key][build.name] = build
 end
 
+function Talented:DeleteActivePvEBuild()
+    local specid = self.tools.GetActiveSpecInfo()
+    local specTable = self.db.class[specid]
+    if not specTable or not specTable.PvE then return end
+
+    local active = self.tools.GetActiveTalentString()
+    local compare = self.tools.CompareTalentStrings
+    local buildsToRemove = {}
+
+    for k,v in pairs(specTable.PvE) do
+        if compare(active, v.build) then
+            tinsert(buildsToRemove, k)
+        end
+    end
+
+    for _,k in ipairs(buildsToRemove) do
+        self:Debug(("Removing %d"):format(
+            self.db.class[specid].PvE[k].name
+        ))
+        specTable.PvE[k] = nil
+    end
+end
+
+function Talented:DeleteActivePvPBuild()
+    local specid = self.tools.GetActiveSpecInfo()
+    local specTable = self.db.class[specid]
+    if not specTable or not specTable.PvP then return end
+
+    local active = self.tools.GetActivePvPTalentIDs()
+    local compare = self.tools.ComparePvPTalentBuilds
+    local buildsToRemove = {}
+
+    for k,v in pairs(specTable.PvP) do
+        if compare(active, v.build) then
+            tinsert(buildsToRemove, k)
+        end
+    end
+
+    for _,k in ipairs(buildsToRemove) do
+        self:Debug(("Removing %d"):format(
+            self.db.class[specid].PvP[k].name
+        ))
+        specTable.PvP[k] = nil
+    end
+end
+
 --@do-not-package@
     Talented.debug = true
 --@end-do-not-package@

@@ -13,3 +13,4 @@ TalentedOptions.lua
 TalentedSaveFrame.lua
 TalentedTalentFrame.lua
 TalentedDropdown.lua
+TalentedDefaultSpecs.lua

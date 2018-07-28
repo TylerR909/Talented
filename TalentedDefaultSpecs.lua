@@ -1,4 +1,4 @@
-local IcyVeinsSpecs = {
+Talented.IcyVeinsSpecs = {
     GameVersion = "8.0.1",
     -- DK - Blood
     ["250"] = { },
@@ -76,7 +76,7 @@ local IcyVeinsSpecs = {
     ["266"] = { },
     -- Warlock - Destruction
     ["267"] = {
-        talents = "2222021"
+        build = "2222021"
      },
 
     -- Warrior - Arms

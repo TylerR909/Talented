@@ -5,15 +5,7 @@ local AceGUI = LibStub("AceGUI-3.0")
 
 function Talented:OnInitialize()
     self:InitOpts()
-    -- local f = AceGUI:Create("Frame")
-    -- f:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end)
-    -- f:SetTitle("Talented")
     self:SeedUI()
-    -- self:SaveActiveBuild()
-end
-
-function Talented:SaveActiveBuild()
-    self:OpenSaveFrame(self:GenerateActiveBuild())
 end
 
 function Talented:SeedUI()
@@ -29,13 +21,29 @@ function Talented:SeedUI()
     end
 end
 
-function Talented:GenerateActiveBuild()
-    return {
-        name = '',
-        talents = self.tools.GetActiveTalentString(),
-        pvpTalents = self.tools.GetActivePvpTalentIDs(),
-        pvpTalentsEnabled = true
+function Talented:SavePvEBuild(name)
+    local newBuild = {
+        name = name,
+        build = self.tools.GetActiveTalentString(),
+        link = nil
     }
+    self:CommitBuild(newBuild, "PvE")
+end
+
+function Talented:SavePvPBuild(name)
+    local newBuild = {
+        name = name,
+        build = self.tools.GetActivePvPTalentIDs(),
+        link = nil
+    }
+    self:CommitBuild(newBuild, "PvP")
+end
+
+function Talented:CommitBuild(build, key)
+    local specid = self.tools.GetActiveSpecInfo()
+    local classTable = self.db.class
+    classTable[specid] = classTable[specid] or { PvE = {}, PvP = {}}
+    classTable[specid][key][build.name] = build
 end
 
 --@do-not-package@

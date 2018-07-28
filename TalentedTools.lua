@@ -29,7 +29,7 @@ end
 
 function tools.GetActiveTalentString()
     local result = ''
-    for tier=1, GetMaxTalentTier() do
+    for tier=1, MAX_TALENT_TIERS do
         result = result..select(2, GetTalentTierInfo(tier, 1))
     end
     return result
@@ -37,6 +37,27 @@ end
 
 function tools.GetActivePvPTalentIDs()
     return C_SpecializationInfo.GetAllSelectedPvpTalentIDs()
+end
+
+function tools.ProcessPvEIgnore(build, ignore)
+    local talentString = ''
+    for i=1, #ignore do
+        if ignore[i] then
+            talentString = talentString..'0'
+        else
+            talentString = talentString..build:sub(i,i)
+        end
+    end
+    return talentString
+end
+
+function tools.ProcessPvPIgnore(build, ignore)
+    for i=1, #ignore do
+        if ignore[i] then
+            build[i] = 0
+        end
+    end
+    return build
 end
 
 function tools.CompareTalentStrings(a,b)

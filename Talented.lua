@@ -21,13 +21,13 @@ function Talented:SeedUI()
     end
 end
 
-function Talented:SavePvEBuild(name)
+function Talented:SavePvEBuild()
     local newBuild = {
-        name = name,
+        name = '',
         build = self.tools.GetActiveTalentString(),
         link = nil
     }
-    self:CommitBuild(newBuild, "PvE")
+    self:OpenPvESavePanel(newBuild)
 end
 
 function Talented:SavePvPBuild(name)
@@ -36,7 +36,7 @@ function Talented:SavePvPBuild(name)
         build = self.tools.GetActivePvPTalentIDs(),
         link = nil
     }
-    self:CommitBuild(newBuild, "PvP")
+    self:OpenPvPSavePanel(newBuild)
 end
 
 function Talented:CommitBuild(build, key)

@@ -90,7 +90,7 @@ function Talented:InitPvEDropdown()
     local menuFrame = CreateFrame("Frame", "TalentedPvEDropdown", Talented.PvETab, "UIDropDownMenuTemplate")
     menuFrame:ClearAllPoints()
     menuFrame:SetPoint("TOPLEFT", Talented.PvETab,"TOPRIGHT")
-    EasyMenu(menu, menuFrame, menuFrame, 5, 40, "MENU", 1)
+    EasyMenu(menu, menuFrame, "cursor", 0, 0, "MENU", 1)
 end
 
 function Talented:InitPvPDropdown()
@@ -135,5 +135,5 @@ function Talented:InitPvPDropdown()
     local menuFrame = CreateFrame("Frame", "TalentedPvEDropdown", Talented.PvPTab, "UIDropDownMenuTemplate")
     menuFrame:ClearAllPoints()
     menuFrame:SetPoint("TOPLEFT", Talented.PvPTab,"TOPRIGHT")
-    EasyMenu(menu, menuFrame, menuFrame, 5, 40, "MENU", 1)
+    EasyMenu(menu, menuFrame, "cursor", 0, 0, "MENU", 1)
 end

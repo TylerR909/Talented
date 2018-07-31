@@ -71,7 +71,7 @@ Talented.IcyVeinsSpecs = {
     ["264"] = { build = "0000000" },
 
     -- Warlock - Affliction
-    ["265"] = { build = "0000000" },
+    ["265"] = { build = "3102321" },
     -- Warlock - Demonology
     ["266"] = { build = "0000000" },
     -- Warlock - Destruction

@@ -1,10 +1,10 @@
 local AceGUI = LibStub("AceGUI-3.0")
 
 function Talented:InitUI()
-    self:Print("Initializing")
+    self:Debug("Initializing")
     self.InitRightClickSpecSwapButtons()
     self:MakeButtonTabs()
-    self:Print("Initialized")
+    self:Debug("Initialized")
 end
 
 function Talented.InitRightClickSpecSwapButtons()
@@ -40,6 +40,10 @@ function Talented:MakeButtonTabs()
     pvp.tooltip = "PVP Builds"
     pvp:Show()
     self.PvPTab = pvp
+
+    if self.db.global.config.hidePvPButton then
+        self.PvPTab:Hide()
+    end
 end
 
 function Talented:InitPvEDropdown()

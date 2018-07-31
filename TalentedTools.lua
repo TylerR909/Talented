@@ -7,6 +7,9 @@ end
 local tools = {}
 
 function tools.LearnTalentString(build)
+    local squelch = Talented.db.global.config.squelch
+    if squelch > 0 then Talented:AddSquelch() end
+
     if build == nil or #build < 1 then return end
     Talented:Debug("Learning talent build "..build)
 
@@ -17,14 +20,20 @@ function tools.LearnTalentString(build)
             LearnTalents(talent)
         end
     end
+
+    if squelch < 2 then Talented:RemoveSquelchDelayed() end
 end
 
 function tools.LearnPvPTalentGroup(group)
+    local squelch = Talented.db.global.config.squelch
+    if squelch > 0 then Talented:AddSquelch() end
+
     for slot=1, #group do
         if group[slot] ~= 0 then 
             LearnPvpTalent(group[slot], slot)
         end
     end
+    if squelch < 2 then Talented:RemoveSquelchDelayed() end
 end
 
 function tools.GetActiveTalentString()

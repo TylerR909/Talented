@@ -10,7 +10,7 @@ function dataobj:RefreshText()
     local activePvEBuilds = Talented:GetActiveBuilds("PvE")
     local buildNamesString = nil
     -- If Build Names is Enabled
-    if true then
+    if Talented.db.global.config.ldb.build then
         for _,build in ipairs(activePvEBuilds) do
             if buildNamesString == nil then
                 buildNamesString = build.name
@@ -20,7 +20,7 @@ function dataobj:RefreshText()
         end
     end
     -- If Title is Enabled
-    if true then 
+    if Talented.db.global.config.ldb.title then 
         if buildNamesString then
             buildNamesString = "Talented: "..buildNamesString
         else 

@@ -1,9 +1,117 @@
 local AddonName, Addon = ...
 
-local defaultOptions = {}
+local defaultOptions = {
+    global = {
+        config = {
+            ldb = {
+                title = true,
+                build = true
+            },
+            squelch = 1, -- 0: Never, 1: When Talented Switches Talents, 2: Always
+            hidePvPButton = false
+        }
+    },
+}
+
+local orderNum = 0;
+local function order()
+    orderNum = orderNum + 1;
+    return orderNum
+end
+
+local optionsTable = {
+    name = "Talented",
+    handler = Talented,
+    type = 'group',
+    args = {
+        LDBHeader = {
+            name = "LDB Plugin",
+            order = order(),
+            type = "header"
+        },
+        LDBTitle = {
+            name = "Title",
+            order = order(),
+            type = "toggle",
+            set = function(_,val)
+                Talented.db.global.config.ldb.title = val 
+                Talented.ldb:Refresh()
+            end,
+            get = function() return Talented.db.global.config.ldb.title end,
+        },
+        LDBBuild = {
+            name = "Build",
+            order = order(),
+            type = "toggle",
+            set = function(_,val) 
+                Talented.db.global.config.ldb.build = val
+                Talented.ldb:Refresh()
+            end,
+            get = function() return Talented.db.global.config.ldb.build end,
+        },
+        OtherHeader = {
+            name = "Other",
+            order = order(),
+            type = "header"
+        },
+        Squelch = {
+            name = "Squelch",
+            desc = "Control when Talented should silence Learned/Unlearned system messages",
+            order = order(),
+            width = 1.5,
+            type = "select",
+            values = {
+                [0] = "Never",
+                [1] = "When Talented Changes Talents",
+                [2] = "Always"
+            },
+            set = function(_, val) 
+                Talented:Debug(val)
+                Talented.db.global.config.squelch = val
+                Talented:InitSquelch()
+            end,
+            get = function() return Talented.db.global.config.squelch end
+        },
+        HidePvPButton = {
+            name = "Hide PvP Button",
+            desc = "Renders the PvP Button on the Talents Frame",
+            order = order(),
+            type = "toggle",
+            get = function() return Talented.db.global.config.hidePvPButton end,
+            set = function(_,val)
+                if val then
+                    Talented.PvPTab:Hide()
+                else
+                    Talented.PvPTab:Show()
+                end
+                Talented.db.global.config.hidePvPButton = val
+            end
+        },
+        Debug = {
+            name = "debug",
+            hidden = true,
+            order = order(),
+            type = "toggle",
+            get = function() return Talented.debug end,
+            set = function(_, val) Talented.debug = val end
+        }
+    }
+}
+
+function Talented:OpenOptionsFrame(input)
+    if not input or input:trim() == "" then
+        InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+        InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+    else
+        LibStub("AceConfigCmd-3.0"):HandleCommand("talented", AddonName, input)
+    end
+end
 
 function Talented:InitOpts()
+    LibStub("AceConfig-3.0"):RegisterOptionsTable(AddonName, optionsTable)
     self.db = LibStub("AceDB-3.0"):New("TalentedDB", defaultOptions, true)
+    self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions(AddonName, "Talented", nil)
+    self:RegisterChatCommand("talented", "OpenOptionsFrame")
     self:InitSquelch()
 
     -- GetNumSpecializations and GetSpecializationInfo don't return
@@ -28,11 +136,17 @@ function Talented:SeedDB()
 end
 
 function Talented:InitSquelch()
-    self:AddSquelch()
+    self:RemoveSquelch()
+    local squelchLevel = self.db.global.config.squelch
+    if squelchLevel > 1 then self:AddSquelch() end
 end
 
 function Talented:AddSquelch()
     ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM", self.Squelch)
+end
+
+function Talented:RemoveSquelchDelayed()
+    C_Timer.After(1, function() self:RemoveSquelch() end)
 end
 
 function Talented:RemoveSquelch()

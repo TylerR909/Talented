@@ -6,6 +6,7 @@ local AceGUI = LibStub("AceGUI-3.0")
 function Talented:OnInitialize()
     self:InitOpts()
     self:SeedUI()
+    self.ldb:Init()
 end
 
 function Talented:SeedUI()
@@ -44,7 +45,6 @@ function Talented:CommitBuild(build, key)
     local classTable = self.db.class
     classTable[specid] = classTable[specid] or { PvE = {}, PvP = {}}
     classTable[specid][key][build.name] = build
-    self.ldb:Refresh()
 end
 
 function Talented:DeleteMatchingBuilds(key, build, comparator)
@@ -67,7 +67,6 @@ function Talented:DeleteMatchingBuilds(key, build, comparator)
         ))
         specTable[k] = nil
     end
-    self.ldb:Refresh()
 end
 
 function Talented:GetActiveBuilds(key)

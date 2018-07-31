@@ -40,6 +40,7 @@ function dataobj:Refresh()
 end
 
 function dataobj:OnClick(button)
+    if InCombatLockdown() then return end
     local shift = IsShiftKeyDown()
     local left = button == "LeftButton"
     local right = button == "RightButton"
@@ -52,16 +53,6 @@ function dataobj:OnClick(button)
         ToggleTalentFrame(2)
     end
 end
-
-local f = CreateFrame("Frame")
-f:RegisterEvent("PLAYER_ENTERING_WORLD")
-f:RegisterEvent("PLAYER_TALENT_UPDATE")
-f:SetScript("OnEvent", function(self, event)
-    if event == "PLAYER_ENTERING_WORLD" then
-        f:UnregisterEvent("PLAYER_ENTERING_WORLD")
-    end
-    dataobj:Refresh()
-end)
 
 function dataobj:OnTooltipShow()
     self:AddLine("Talented")
@@ -83,6 +74,20 @@ function dataobj:OnTooltipShow()
     tt("Left Click", "PvE Talents")
     tt("Right Click", "PvP Talents")
     tt("Shift + Left", "Open Talents")
+end
+
+function dataobj:Init()
+    local r = function() dataobj:Refresh() end
+    hooksecurefunc(Talented, "CommitBuild", r)
+    hooksecurefunc(Talented, "DeleteMatchingBuilds", r)
+    -- Event is firing multiple times on log-in before some data has
+    -- settled/initialized, causing errors. Delay registering for 1sec
+    -- to avoid
+    C_Timer.After(1, function() 
+        Talented:RegisterEvent("PLAYER_TALENT_UPDATE", function() 
+            C_Timer.After(0.25, r)
+        end)
+    end)
 end
 
 Talented.ldb = dataobj

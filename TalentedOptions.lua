@@ -12,6 +12,7 @@ function Talented:InitOpts()
     self:RegisterEvent("PLAYER_ENTERING_WORLD", function()
         self:UnregisterEvent("PLAYER_ENTERING_WORLD")
         self:SeedDB()
+        Talented.ldb:Refresh()
     end)
 end
 

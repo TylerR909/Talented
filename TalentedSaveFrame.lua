@@ -93,10 +93,4 @@ function Talented:OpenSaveFrame(build, talentNameFunc, talentIgnoreTag, ignorePr
 
     g:Show()
     editbox:SetFocus()
-
-end
-
-function Talented:SaveCompletedBuild(build)
-    self:Print(build.talents)
-    self:Print(build.pvpTalents)
 end

@@ -84,3 +84,25 @@ Talented.IcyVeinsSpecs = {
     -- Warrior - Protection
     ["73"] = { build = "1223011" },
 }
+
+function Talented:IcyVersionCheck()
+    if self.db.global.config.hideIcyVeins 
+        or self.db.global.config.ignoreIcyCheck 
+    then return end
+
+    C_Timer.After(5, function() 
+        local patch = GetBuildInfo()
+        local buildsPatch = Talented.IcyVeinsSpecs.GameVersion
+        if patch ~= buildsPatch then
+            PlaySound(SOUNDKIT.TELL_MESSAGE)
+            self:Print(
+                ("IcyVeins builds are relevant for %s and "
+                    .."have not been updated for %s yet. "
+                    .."Use at your own discretion."):format(
+                        buildsPatch,
+                        patch
+                )
+            )
+        end
+    end)
+end

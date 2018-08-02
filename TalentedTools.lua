@@ -99,6 +99,18 @@ function tools.GetActiveSpecInfo()
     return GetSpecializationInfo(GetSpecialization())
 end
 
+function tools.SetSpellPushDisabled(disable)
+    if disable then
+        IconIntroTracker:UnregisterEvent("SPELL_PUSHED_TO_ACTIONBAR")
+        IconIntroTracker:Hide()
+        IconIntroTracker:SetParent(UIHider)
+    else
+        IconIntroTracker:RegisterEvent("SPELL_PUSHED_TO_ACTIONBAR")
+        IconIntroTracker:Show()
+        IconIntroTracker:SetParent(UIParent)
+    end
+end
+
 function tools.ActiveSpecID()
     return select(1, tools.GetActiveSpecInfo())
 end

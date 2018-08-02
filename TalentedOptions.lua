@@ -11,6 +11,7 @@ local defaultOptions = {
             hidePvPButton = false,
             hideIcyVeins = false,
             ignoreIcyCheck = false,
+            disableSpellPush = true,
             debug = false
         }
     },
@@ -113,6 +114,17 @@ local optionsTable = {
                 Talented.db.global.config.hidePvPButton = val
             end
         },
+        SpellPushActionbar = {
+            name = "Stop New Spells on Actionbars",
+            desc = "Stops new spells from pushing themselves to the actionbars",
+            order = order(),
+            type = "toggle",
+            get = function() return Talented.db.global.config.disableSpellPush end,
+            set = function(_, val) 
+                Talented.db.global.config.disableSpellPush = val
+                Talented.tools.SetSpellPushDisabled(val)
+            end
+        },
         Debug = {
             name = "debug",
             hidden = true,
@@ -142,6 +154,7 @@ function Talented:InitOpts()
     self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions(AddonName, "Talented", nil)
     self:RegisterChatCommand("talented", "OpenOptionsFrame")
     self:InitSquelch()
+    self.tools.SetSpellPushDisabled(self.db.global.config.disableSpellPush)
     self.debug = self.db.global.config.debug
 
     -- GetNumSpecializations and GetSpecializationInfo don't return

@@ -4,6 +4,7 @@ ignore:
    - Screenshots
    - README.md
    - Old
+   - AddOnSkins.lua
 
 externals:
     Libs/LibStub:

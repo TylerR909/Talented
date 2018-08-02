@@ -23,7 +23,8 @@ end
 function Talented:MakeButtonTabs()
     local pve = CreateFrame("Button",nil,PlayerTalentFrameTalents,"SpellBookSkillLineTabTemplate")
     pve:SetPoint("TOPLEFT", PlayerTalentFrame, "TOPRIGHT", 0, -35)
-    pve:SetNormalTexture("Interface\\Icons\\INV_Helmet_08")
+    Talented.PvETexture = "Interface\\Icons\\INV_Helmet_08"
+    pve:SetNormalTexture(Talented.PvETexture)
     pve:SetScript("OnClick", function(btn)
         self:InitPvEDropdown()
     end)
@@ -33,7 +34,9 @@ function Talented:MakeButtonTabs()
 
     local pvp = CreateFrame("Button",nil,pve,"SpellBookSkillLineTabTemplate")
     pvp:SetPoint("TOPLEFT", pve, "BOTTOMLEFT", 0, -22)
-    pvp:SetNormalTexture("Interface\\Icons\\achievement_bg_winwsg")
+    -- For ElvUI AddOnSkins plugin
+    Talented.PvPTexture = "Interface\\Icons\\achievement_bg_winwsg" 
+    pvp:SetNormalTexture(Talented.PvPTexture)
     pvp:SetScript("OnClick", function(btn)
         self:InitPvPDropdown()
     end)

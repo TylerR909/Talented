@@ -3,6 +3,7 @@ enable-nolib-creation: no
 ignore:
    - Screenshots
    - README.md
+   - Old
 
 externals:
     Libs/LibStub:

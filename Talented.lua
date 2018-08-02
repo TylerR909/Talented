@@ -45,7 +45,11 @@ function Talented:CommitBuild(build, key)
     local specid = self.tools.GetActiveSpecInfo()
     local classTable = self.db.class
     classTable[specid] = classTable[specid] or { PvE = {}, PvP = {}}
-    classTable[specid][key][build.name] = build
+    local tbl = classTable[specid][key]
+    if tbl[build.name] ~= nil then
+        self:Print(("The build \"%s\" already exists. Overwriting with the new build..."):format(build.name))
+    end
+    tbl[build.name] = build
 end
 
 function Talented:DeleteMatchingBuilds(key, build, comparator)
@@ -63,7 +67,7 @@ function Talented:DeleteMatchingBuilds(key, build, comparator)
     end
 
     for _,k in ipairs(buildsToRemove) do
-        self:Debug(("Removing %d"):format(
+        self:Print(("Removing \"%s\""):format(
             specTable[k].name
         ))
         specTable[k] = nil

@@ -3,7 +3,7 @@
 ## Title: Talented
 ## Notes: Save and swap talent builds on the fly.
 ## Author: TylerR909: Shibang, US-Korialstrasz
-## SavedVariables: TalentedDB, TalentedOptions
+## SavedVariables: TalentedDB
 
 embeds.xml
 

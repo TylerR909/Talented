@@ -13,7 +13,8 @@ local defaultOptions = {
             ignoreIcyCheck = false,
             disableSpellPush = true,
             debug = false
-        }
+        },
+        v2seen = false
     },
 }
 
@@ -156,6 +157,7 @@ function Talented:InitOpts()
     self:InitSquelch()
     self.tools.SetSpellPushDisabled(self.db.global.config.disableSpellPush)
     self.debug = self.db.global.config.debug
+    self:VersionCheck()
 
     -- GetNumSpecializations and GetSpecializationInfo don't return
     -- anything on initialization (num=0, info=nil), so we need to
@@ -176,6 +178,20 @@ function Talented:SeedDB()
             PvP = {}
         }
     end
+end
+
+function Talented:VersionCheck()
+    local v2seen = self.db.global.v2seen
+    if v2seen == nil or not v2seen then
+        StaticPopupDialogs["Talented v2"] = {
+            text = "Thank you for upgrading to Talented 2. Unfortunately, you builds have been reset.",
+            button1 = "Okay",
+            hideOnEscape = true
+         }
+         
+         StaticPopup_Show("Talented v2")
+    end
+    self.db.global.v2seen = true
 end
 
 function Talented:InitSquelch()

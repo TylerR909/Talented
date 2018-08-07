@@ -1,697 +1,120 @@
--- Talented v1.3
+local AddonName, Addon = ...
 
-local addonName, tal = ...
-local Talented = "|cff00e0ffTalented|r"
-local Talented_UpdateInterval = 0.3;
-local MaxTalentTier, PvpMaxTalentTier = 7,6
-local TalentPool, TalentPvpPool, ldb
-local Talented_ClassColors = {
-    WARRIOR = "|cffc79c6e",
-    PALADIN = "|cfff58cba",
-    HUNTER = "|cffabd473",
-    ROGUE = "|cfffff569",
-    PRIEST = "|cffffffff",
-    DEATHKNIGHT = "|cffc41f3b",
-    SHAMAN = "|cff0070de",
-    MAGE = "|cff69ccf0",
-    WARLOCK = "|cff9482c9",
-    MONK = "|cff00ff96",
-    DRUID = "|cffff7d0a",
-    DEMONHUNTER = "|cffa330c9"
-}
+Talented = LibStub("AceAddon-3.0"):NewAddon(AddonName, "AceEvent-3.0", "AceConsole-3.0")
+local AceGUI = LibStub("AceGUI-3.0")
 
-local defaultops = {
-    squelch = 1, --[0: No Squelch][1: When Talented swaps talents][2: Always]
-    ldb = {
-        title_on = true
-    }
-}
-
-
---TODO: Add delete GUI for "All this char, all this class, all"
---TODO: Add button to use consumables to initiate spec changes
---TODO: Add location-based loading. Autoload "Dungeon" spec when entering dungeons, etc
---TODO: Add player-leveled event and update player-specific (not class) builds to build.."0" to ignore next tier (keeps TalentedGetActiveBuild and #build the same length for TalentedIsAnActiveSpec)
---      Note: If Talented isn't running when player levels, code won't be updated. Save player level into db and when addon loads check for differences and update?
---TODO: 101121 and 111121 - No differentiation is made on DeleteActive. Delete calls GetActive then the first match on the table is deleted
-
-function TalentedSaveActiveBuild(build_code,mode_key,build_name) -- mode_key will be "PvE" or "PvP" to set a bool
-    local build = {}
-
-    if TalentedIsZeros(build_code) then
-        print(Talented..": Nothing to save if ignoring all tiers.")
-        return
-    end
-
-    build.player_name = GetUnitName("player")
-    local tmp,_,_ = UnitClass("player")
-    build.class = tmp
-    build.spec = GetSpecialization()
-    build.mode = mode_key
-    build.code = build_code
-    build.build_name = build_name
-
-    TalentedCommitBuild(build)
-    TalentedRefresh()
+function Talented:OnInitialize()
+    self:InitOpts()
+    self:SeedUI()
+    self.ldb:Init()
+    self:IcyVersionCheck()
 end
 
-
-
-function TalentedPrepActiveBuild(self,mode_key) --mode_key should be PvP or PvE
-    -- self is the button. This function was attached to the button's OnClick.
-    if InCombatLockdown() == true then
-        print(Talented..": Can't save build while in combat.")
-        return
-    end
-
-    --Show TalentedPopup and hand it self.value (build code)
-    TalentedPopupButton.mode_key = mode_key
-    TalentedPopup:Show()
-    --A frame will pop up. When the user clicks save, the OnClick handler
-    --will fire TalentedSaveActiveBuild with EditBox and ignore-information
-end
-
-
-
-function TalentedCommitBuild(build)
-    if TalentedDB == nil then --noinspection GlobalCreationOutsideO
-    TalentedDB = {} end
-    local current
-
-    for i = 1,#TalentedDB do
-        current = TalentedDB[i]
-        if current.player_name == build.player_name and
-           current.spec == build.spec and
-           current.mode == build.mode
-        then
-            if current.code == build.code and current.build_name == build.build_name then do
-                print(Talented..": You've already saved that build.")
-                return
-                end
-            elseif current.code == build.code then do
-                print(Talented..": Build exists as "..current.build_name..". Updating name to "..build.build_name)
-                current.build_name = build.build_name
-                return -- Item exists in table. Update build order and do not commit.
-                end
-            elseif current.build_name == build.build_name then do
-                print(Talented..": You've already saved that build as |cffff0000"..current.build_name.."|r. Updating to new name.")
-                current.code = build.code
-                return -- Item exists in table. Update name and do not commit.
-                end
+function Talented:SeedUI()
+    if IsAddOnLoaded("Blizzard_TalentUI") then 
+        self:InitUI()
+    else 
+        self:RegisterEvent("ADDON_LOADED", function(event, ...) 
+            if ... == "Blizzard_TalentUI" then 
+                self:UnregisterEvent("ADDON_LOADED")
+                self:InitUI()
             end
-        end
-    end
-
-    --Checked the table and no existing code or build name exists. Commiting new table.
-    tinsert(TalentedDB,build)
-end
-
-
-
-local function ApplyBuild(build,mode_key)
-    if build == nil or #build < 1 then return end
-
-    if TalentedOptions.squelch ~= 0 then
-        ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end
-
-
-    if mode_key == "PvE" then
-        for i = 1, #build do
-            local s = build:sub(i,i)
-            if s ~= "0" then LearnTalents(GetTalentInfo(i,s,1)) end
-        end
-    elseif mode_key == "PvP" then
-        for i = 1, #build do
-            local s = build:sub(i,i)
-            -- if s ~= "0" then LearnPvpTalents(GetPvpTalentInfo(i,s,1)) end
-        end
-    end
-
-    --[[
-    local learn, info
-
-    if mode_key == "PvE" then
-        learn = LearnTalents
-        info = GetTalentInfo
-        -- learn, info = LearnTalents, GetTalentInfo
-    elseif mode_key == "PvP" then
-        learn == LearnPvpTalents
-        info = GetPvpTalentInfo
-        -- learn, info = LearnPvpTalents, GetPvpTalentInfo
-    end
-
-    for i = 1, #build do
-        local s = build:sub(i,i)
-        if s ~= "0" then learn(info(i,s,1))
-    end
-    --]]
-
-    if TalentedOptions.squelch ~= 2 then
-        C_Timer.After(1,function () ChatFrame_RemoveMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end) end
-end
-
-
-
-function TalentedGetActiveBuild()
-    local active_spec = ""
-
-    for tier = 1,MaxTalentTier do
-       for column = 1,3 do
-           local _,_,_,active = GetTalentInfo(tier,column,1)
-           if active == true then active_spec = active_spec..column end
-       end
-    end
-
-    return active_spec
-end
-
-function TalentedIsAnActiveSpec(code,active)
-    if #code ~= #active then return false end
-
-    for i = 1, #code do
-        if code:sub(i,i) ~= "0" then
-            if code:sub(i,i) ~= active:sub(i,i) then
-                return false
-            end
-        end
-    end
-    return true
-end
-
-
-
-function TalentedUpdateButtonText_OnUpdate(self,elapsed,mode)
-    --TODO: Add PvP Functionality. Update args list? So much branching...
-    self.TimeSinceLastUpdate = self.TimeSinceLastUpdate + elapsed;
-
-    if (self.TimeSinceLastUpdate > Talented_UpdateInterval) then
-        local value = TalentedGetActiveBuild()
-        TalentedUpdateButtonText(self,value,mode)
-    end
-    --TalentedSavedBuildsDropdownPvE
-    --TalentedSavedBuildsDropdownPvP
-end
-
---These functions (above/below) being two seperate enteties no longer makes sense. Could probably be condensed down easily. BLOAT
-
-function TalentedUpdateButtonText(self,build_code,mode)
-    self.TimeSinceLastUpdate = 0;
-
-    local target
-    --loop through TalentPool until we find an active spec
-    --store TalentPool[i].build_name
-
-    if TalentPool then
-        for i = 1, #TalentPool do
-            if TalentPool[i].mode == mode and TalentedIsAnActiveSpec(TalentPool[i].code,build_code) then
-                target = TalentPool[i].build_name
-            end
-        end
-    end
-
-    --Won't update until after dropdown has been clicked at least once?
-    if not target then target = "Custom" end
-    UIDropDownMenu_SetText(self,target)
-end
-
-
-
-function TalentedInitDropdownPvE(self)
-    TalentedInitDropdown(self,"PvE")
-end
-
-function TalentedInitDropdown(self,mode_key)
-    local dat = {}
-    local info
-    local added_something = false;
-
-    if TalentPool then
-        --OnLoad TalentedDB hasn't been loaded yet, meaning this is not entered at the start
-        for i = 1,#TalentPool do
-            info = TalentPool[i]
-
-            if (info.mode == mode_key) then
-                dat.text = info.build_name
-                dat.value = info.code
-                dat.arg1 = mode_key
-                dat.func = TalentedSelectBuild
-                local active = TalentedIsAnActiveSpec(info.code,TalentedGetActiveBuild())
-                dat.checked = active
-                UIDropDownMenu_AddButton(dat);
-                added_something = true
-            end
-        end
-    end
-
-    if (added_something) then
-        local blank = {}
-        blank.disabled = 1
-        blank.notCheckable = true
-        UIDropDownMenu_AddButton(blank)
-    end
-
-    --Add button to bottom to save currently-active build
-    dat.text = "Save Active Build"
-    dat.colorCode = "|cff00ff00"
-    dat.value = nil
-    dat.arg1 = mode_key
-    dat.func = TalentedPrepActiveBuild
-    dat.notCheckable = true
-    dat.justifyH = "CENTER"
-    --dat.icon = "Spell_chargepositive.png"
-    UIDropDownMenu_AddButton(dat)
-
-    --Add delete button
-    dat.text = "Delete Active Build"
-    dat.colorCode = "|cffff0000"
-    dat.value = nil
-    dat.arg1 = mode_key
-    dat.func = TalentedDeleteButton
-    UIDropDownMenu_AddButton(dat)
-end
-
-
-
-function TalentedSelectBuild(self,arg1)
-    if InCombatLockdown() == true then
-        print(Talented..": Can't modify talents while in combat.")
-        return
-    end
-
-    if (TalentedIsAnActiveSpec(self.value,TalentedGetActiveBuild())) then return end
-
-    ApplyBuild(self.value,arg1)
-
-    -- Reset text-update timer so it doesn't run while build is being applied
-    -- and cause "Custom" swapping back and forth
-    TalentedSavedBuildsDropdownPvE.TimeSinceLastUpdate = 0
-end
-
-
-
-function TalentedDeleteButton(self)
-    TalentedDeleteActive()
-
-    TalentedRefresh()
-end
-
-
-
-
-
---[[  LOAD HANDLER AND RELATED FUNCTIONS   --]]
-
-local init = CreateFrame("Frame")
-init:RegisterEvent("ADDON_LOADED")
-init:RegisterEvent("VARIABLES_LOADED")
-init:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-local function TalentedLoad(self, event, ...)
-    if event == "ACTIVE_TALENT_GROUP_CHANGED" then 
-        TalentedUpdateTalentPool()
-    elseif event == "VARIABLES_LOADED" then
-        TalentedOptions = TalentedOptions or defaultops
-        TalentedCreateTierIgnoreButtons(TalentedPopupButton)
-        TalentedDB = TalentedDB or {}
-        TalentedLoadOptions()
-        TalentedUpdateTalentPool()
-        TalentedLoadLDB()
-        init:UnregisterEvent("VARIABLES_LOADED")
-    -- elseif ... == "Blizzard_TalentUI" then
-    elseif event == "ADDON_LOADED" and ... == "Blizzard_TalentUI" then
-        CreateFrame("Frame","TalentedSavedBuildsDropdownPvE",PlayerTalentFrameTalents,"TalentedPvETemplate")
-        TalentedSavedBuildsDropdownPvE:Show()
-
-        TalentedRClickInit()
-        init:UnregisterEvent("ADDON_LOADED")
-    end
-end
-init:SetScript("OnEvent", TalentedLoad)
-
-
-
-function TalentedRefresh()
-    --Inefficient but it works
-    TalentedUpdateTalentPool()
-
-    if TalentedSavedBuildsDropdownPvE then
-        UIDropDownMenu_Initialize(TalentedSavedBuildsDropdownPvE,TalentedInitDropdownPvE)
-        TalentedUpdateButtonText(TalentedSavedBuildsDropdownPvE,TalentedGetActiveBuild(),"PvE")
-    end
-end
-
-
-
-function TalentedUpdateTalentPool()
-    TalentPool = {}
-
-    if TalentedDB == nil or #TalentedDB < 1 then return end
-
-    local current
-
-    for i = 1, #TalentedDB do
-        current = TalentedDB[i]
-
-        if current.class == UnitClass("player") and
-           current.spec == GetSpecialization()
-        then
-            local temp = {}
-
-            temp.build_name = current.build_name
-            temp.code = current.code
-            temp.mode = current.mode
-
-            tinsert(TalentPool,temp)
-        end
-    end
-end
-
-function TalentedRClickInit()
-    local btn = { PlayerTalentFrameSpecializationSpecButton1,
-                  PlayerTalentFrameSpecializationSpecButton2,
-                  PlayerTalentFrameSpecializationSpecButton3,
-                  PlayerTalentFrameSpecializationSpecButton4 }
-
-    for i = 1, GetNumSpecializations() do
-        btn[i]:RegisterForClicks("LeftButtonUp","RightButtonUp")
-
-        btn[i]:HookScript("OnClick",function(self,button,down)
-            if button ~= "RightButton" then return end
-            if (i ~= GetSpecialization()) then SetSpecialization(i) end
         end)
     end
 end
 
-
-
-
-
-
-
-
---[[     LDB Loader & Functions              --]]
-
-function TalentedLoadLDB()
-    --TODO: Clean up library in files and update .toc to auto-include libraries from Curse
-    local f = CreateFrame("frame","TalentedLDB")
-    local update_interval, elapsed = 1.5,0
-    local dropdown, buttons
-
-    ldb = LibStub:GetLibrary("LibDataBroker-1.1"):NewDataObject("Talented PvE", {
-        type = "launcher",
-        icon = "Interface\\Icons\\Ability_marksmanship",
-        text = "Talented",
-        OnClick = function(p, button)
-            if not dropdown then dropdown = TalentedLDBDropdown(p) end
-
-            if InCombatLockdown() then dropdown:Hide(); return end
-
-            if button == "RightButton" then ToggleTalentFrame(); dropdown:Hide(); return end
-
-            if dropdown:IsVisible() then dropdown:Hide()
-            else dropdown:Show(); GameTooltip:Hide() end
-        end,
-    })
-
-    f:SetScript("OnUpdate", function(self,elap)
-        elapsed = elapsed + elap
-        if elapsed < update_interval then return end
-
-        elapsed = 0
-
-        local t = ""
-        if (TalentedOptions.ldb.title_on) then t = Talented..": " end
-        t = t..ldb.TalentedLDBUpdate()
-        ldb.text = t
-    end)
-
-    function ldb:OnTooltipShow()
-        self:AddLine(Talented)
-        self:AddLine("Your currently-active build is saved as: |cff00ff00"..ldb.TalentedLDBUpdate(),1,1,1,true)
-    end
-
-    function ldb:OnEnter()
-        --if dropdown:IsVisible() then GameTooltip:Hide(); return end
-
-        GameTooltip:SetOwner(self,"ANCHOR_NONE")
-        GameTooltip:SetPoint("TOPLEFT",self,"BOTTOMLEFT")
-        GameTooltip:ClearLines()
-        ldb.OnTooltipShow(GameTooltip)
-        GameTooltip:Show()
-    end
-
-    function ldb:OnLeave()
-        GameTooltip:Hide()
-    end
-
-    function ldb:TalentedLDBUpdate()
-        local active = TalentedGetActiveBuild()
-
-        for i = 1, #TalentPool do
-            if TalentedIsAnActiveSpec(TalentPool[i].code,active) then
-                return TalentPool[i].build_name
-            end
-        end
-
-        return "Custom"
-    end
-
-    function TalentedLDBDropdown(p)
-        GameTooltip:Hide()
-        GameTooltip:ClearLines()
-
-        local d = CreateFrame("Frame","TalentedLDBDropdown_",UIParent,"InsetFrameTemplate2")
-        --OptionsBoxTemplate
-        --GlowBoxTemplate
-        --if d:IsShown() then d:Hide(); return end
-        d:ClearAllPoints()
-        d:SetPoint("TOP",p,"BOTTOM")
-        d:SetFrameStrata("DIALOG")
-        d:SetWidth(150)
-        d:SetClampedToScreen(true)
-
-        d.texture = d:CreateTexture(nil,"BACKGROUND")
-        --d.texture:SetColorTexture(0,0,0,0.8)
-        d.texture:SetAllPoints(d)
-
-        d:SetScript("OnLeave", function() d:Hide() end)
-        d:SetScript("OnShow", function() TalentedLDBPopulateDropdown(d) end)
-
-        d:Hide()
-
-        return d
-    end
-
-    function TalentedLDBPopulateDropdown(d)
-        if #TalentPool < 1 then d:Hide(); return end
-
-        if buttons and #buttons > 0 then
-            for i=1,#buttons do
-                buttons[i]:Hide()
-            end
-        end
-
-        buttons = {}
-        local button_height = 30
-
-        for i = 1, #TalentPool do
-            if TalentPool[i].mode == "PvE" then --Crude
-                local b = CreateFrame("Button","TalentedLDBButton"..i,d)
-                b:SetHeight(button_height)
-                b:SetWidth(d:GetWidth()-8)
-                b:SetNormalFontObject("GameFontNormalSmall")
-                b:SetHighlightFontObject("GameFontHighlightSmall")
-                b:SetText(TalentPool[i].build_name)
-                b:SetFrameStrata("TOOLTIP")
-
-                    --NORMAL
-                local norm = b:CreateTexture()
-                norm:SetAllPoints(b)
-                if i % 2 ~= 0  then norm:SetColorTexture(0,0,0,0.7)
-                               else norm:SetColorTexture(0.1,0.1,0.1,0.9) end
-                b:SetNormalTexture(norm,"DISABLE")
-                    --PUSHED
-                local pushed = b:CreateTexture()
-                pushed:SetColorTexture(0,0.5,0.5,0.8)
-                pushed:SetAllPoints(true)
-                b:SetPushedTexture(pushed)
-                    --HIGHLIGHT
-                local highlight = b:CreateTexture()
-                highlight:SetColorTexture(0,1,1,0.8)
-                highlight:SetAllPoints(true)
-                b:SetHighlightTexture(highlight,"MOD")
-                --[[
-                --]]
-
-                if i == 1 then b:SetPoint("TOP",d,"TOP",0,-4)
-                else b:SetPoint("TOP",buttons[i-1],"BOTTOM",0,0) end
-
-                b:SetScript("OnClick",function() ApplyBuild(TalentPool[i].code,"PvE"); d:Hide() end)
-
-                buttons[i] = b
-            end
-        end
-
-        d:SetHeight((#buttons * button_height)+8)
-    end
+function Talented:SavePvEBuild()
+    local newBuild = {
+        name = '',
+        build = self.tools.GetActiveTalentString(),
+        link = nil
+    }
+    self:OpenPvESavePanel(newBuild)
 end
 
-
-
-
-
-
-
---[[       Talented Options Loader         --]]
-function TalentedLoadOptions()
-    if TalentedOptions.squelch == 2 then ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch) end
-
-    TalentedOptions.pane = CreateFrame("Frame",nil,InterfaceOptionsFramePanelContainer)
-    local p = TalentedOptions.pane
-    p:Hide()
-
-    p:SetAllPoints()
-
-    p.name = Talented
-    p.okay = function(self) end
-    p.cancel = function(self) end
-    p.default = function(self) TalentedOptions = defaultops end
-
-    local title = p:CreateFontString(nil,"ARTWORK","GameFontNormalLarge")
-    --title:Hide()
-    title:SetText("Talented")
-    title:SetJustifyH("LEFT")
-    title:SetJustifyV("TOP")
-    title:SetPoint("TOPLEFT",16,-16)
-
-
-    --Squelch Dropdown
-    local squelch_label = p:CreateFontString(nil,"ARTWORK","GameFontHighlightSmall")
-    squelch_label:SetPoint("TOPLEFT",p,"TOPLEFT",16,-50)
-    squelch_label:SetText("When should "..Talented.." silence Talent-chat-spam?")
-
-    local dropdown = CreateFrame("Frame","TalentedSquelchSettings",p,"UIDropDownMenuTemplate")
-    dropdown:SetPoint("TOPLEFT",squelch_label,"BOTTOMLEFT",0,-10)
-    dropdown.initialize = function(d)
-        local squelch_settings = {"Never","Talented only","Always" }
-        for i = 1, #squelch_settings do
-            local b = UIDropDownMenu_CreateInfo()
-            b.text = squelch_settings[i]
-            b.value = i-1
-            b.func = function(self)
-                TalentedOptions.squelch = self.value
-                UIDropDownMenu_SetSelectedValue(d,self.value)
-                TalentedSquelchUpdate()
-            end
-            UIDropDownMenu_AddButton(b)
-        end
-        UIDropDownMenu_SetSelectedValue(d,TalentedOptions.squelch)
-    end
-    dropdown:HookScript("OnShow",dropdown.initialize)
-
-
-
-    --LDB Title
-    local ldb_title = CreateFrame("CheckButton","TalentedLDBTitleOption",p,"InterfaceOptionsCheckButtonTemplate")
-    ldb_title:SetPoint("TOPLEFT",dropdown,"BOTTOMLEFT",0,-25)
-    getglobal(ldb_title:GetName().."Text"):SetText("Title in LDB Plugin")
-    ldb_title.tooltipText = "Enable the "..Talented.." title in the LDB Broker display."
-    ldb_title:SetScript("OnClick", function(self)
-        --Button switches state THEN this is run
-        if self:GetChecked() then
-            TalentedOptions.ldb.title_on = true
-        else
-            TalentedOptions.ldb.title_on = false
-        end
-    end)
-    ldb_title:SetScript("OnShow", function(self) self:SetChecked(TalentedOptions.ldb.title_on) end)
-
-    InterfaceOptions_AddCategory(TalentedOptions.pane)
+function Talented:SavePvPBuild(name)
+    local newBuild = {
+        name = name,
+        build = self.tools.GetActivePvPTalentIDs(),
+        link = nil
+    }
+    self:OpenPvPSavePanel(newBuild)
 end
 
-
-
---[[  TIER FUNCTIONS AND UTILITIES   --]]
-
-function TalentedCreateTierIgnoreButtons(bin)
-    bin.ignoreKeys = {}
-
-    for i = 1, math.max(PvpMaxTalentTier,MaxTalentTier) do
-        local btn = CreateFrame("Button","TalentedTier"..i.."IgnoreButton",bin:GetParent(),"TalentedIgnoreTierTemplate")
-        bin.ignoreKeys[i] = btn
-
-        btn:SetText("Tier "..i)
-        if i ~= 1 then btn:SetPoint("TOP",bin.ignoreKeys[i-1],"BOTTOM",0,-5) end
-        btn:Show()
+function Talented:CommitBuild(build, key)
+    local specid = self.tools.GetActiveSpecInfo()
+    local classTable = self.db.class
+    classTable[specid] = classTable[specid] or { PvE = {}, PvP = {}}
+    local tbl = classTable[specid][key]
+    if tbl[build.name] ~= nil then
+        self:Print(("The build \"%s\" already exists. Overwriting with the new build..."):format(build.name))
     end
+    tbl[build.name] = build
 end
 
-function TalentedPrepKeys(repo,build_code)
-    local maxKeysToShow = #build_code
+function Talented:DeleteMatchingBuilds(key, build, comparator)
+    local specid = self.tools.GetActiveSpecInfo()
+    local specTable = self.db.class[specid]
+    if not specTable or not specTable[key] then return end
+    specTable = specTable[key]
 
-    for i = 1,#repo do
-        repo[i]:Show() --OnShow resets on/off state to a Standard
+    local buildsToRemove = {}
 
-        if i > maxKeysToShow then repo[i]:Hide() end -- Hide for inactive/unnecessary buttons
-    end
-
-    if maxKeysToShow == 0 then TalentedPopup:SetHeight(105)
-    else TalentedPopup:SetHeight(125 + (maxKeysToShow * 25)) end
-end
-
-function TalentedProcessIgnoreKeys(repo)
-    local ignoreCode = ""
-
-    local numShown = 0
-
-    for i = 1, #repo do if repo[i]:IsShown() then numShown = numShown + 1 end end
-
-    for i = 1, numShown do
-        if repo[i].selected then ignoreCode = ignoreCode.."0"
-            else ignoreCode = ignoreCode.."1"
+    for k,v in pairs(specTable) do
+        if comparator(build, v.build) then
+            tinsert(buildsToRemove, k)
         end
     end
 
-    return ignoreCode
-end
-
-function TalentedIgnoreSmush(build,ignore)
-    local rval = ""
-
-    for i = 1,strlen(build) do
-        if ignore:sub(i,i) == "1" then rval = rval.."0"
-          else rval = rval..build:sub(i,i) end
-    end
-
-    return rval
-end
-
-function TalentedIsZeros(code)
-    if code == nil then return true end
-
-    for i = 1, #code do
-        if code:sub(i,i) ~= "0" then return false end
-    end
-
-    return true
-end
-
-function TalentedSquelch(self, event, msg,...)
-    if msg:find("You have unlearned") then
-        return true
-    end
-    if msg:find("You have learned") then
-        return true
-    end
-
-    return false
-end
-
-function TalentedSquelchUpdate()
-    local op = TalentedOptions.squelch
-
-    if op == 0 then
-        ChatFrame_RemoveMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch)
-    elseif op == 2 or op == 1 then
-        ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM",TalentedSquelch)
+    for _,k in ipairs(buildsToRemove) do
+        self:Print(("Removing \"%s\""):format(
+            specTable[k].name
+        ))
+        specTable[k] = nil
     end
 end
+
+function Talented:GetActiveBuilds(key)
+    local specid = self.tools.ActiveSpecID()
+    -- if not self.db.class[specid] then return {} end
+    -- if not self.db.class[specid][key] then return {} end
+    local spectable = self.db.class[specid][key]
+
+    local activeBuild, compare
+    if key == "PvE" then
+        activeBuild = self.tools.GetActiveTalentString()
+        compare = self.tools.CompareTalentStrings
+    elseif key == "PvP" then
+        activeBuild = self.tools.GetActivePvPTalentIDs()
+        compare = self.tools.ComparePvPTalentBuilds
+    else
+        return {}
+    end
+
+    local activeBuilds = {}
+    for _,build in pairs(spectable) do
+        if compare(build.build, activeBuild) then
+            tinsert(activeBuilds, build)
+        end
+    end
+
+    if not self.db.global.config.hideIcyVeins then
+        local icyBuild = Talented.IcyVeinsSpecs[tostring(specid)]
+        if key == "PvE" and compare(icyBuild.build, activeBuild) then
+            tinsert(activeBuilds, {
+                name = "Icy Veins",
+                build = icyBuild.build
+            })
+        end
+    end
+    return activeBuilds
+end
+
+--@do-not-package@
+    Talented.debug = true
+--@end-do-not-package@
+
+-- /tinspect C_SpecializationInfo has lots of PVP Talent stuff we need
+-- LearnPvpTalent(spellId, slotNumber)
+-- local { 3494, 161, 155, 3509 } = C_SpecializationInfo.GetAllSelectedPvpTalentIDs()
+-- local selectedTalentForTier = GetTalentTierInfo(tier, 1)

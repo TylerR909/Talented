@@ -3,12 +3,14 @@
 ## Title: Talented
 ## Notes: Save and swap talent builds on the fly.
 ## Author: TylerR909: Shibang, US-Korialstrasz
-## SavedVariables: TalentedDB, TalentedOptions
+## SavedVariables: TalentedDB
 
-libs\LibStub.lua
-libs\CallbackHandler-1.0.lua
-libs\LibDataBroker-1.1.lua
+embeds.xml
 
-TalentedLib.lua
-Talented.xml
-TalentedSlashCommands.lua
+Talented.lua
+TalentedTools.lua
+TalentedOptions.lua
+TalentedSaveFrame.lua
+TalentedTalentFrame.lua
+TalentedDefaultSpecs.lua
+TalentedLDB.lua

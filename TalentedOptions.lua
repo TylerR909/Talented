@@ -190,6 +190,7 @@ function Talented:VersionCheck()
          }
          
          StaticPopup_Show("Talented v2")
+         self.db:ResetDB()
     end
     self.db.global.v2seen = true
 end

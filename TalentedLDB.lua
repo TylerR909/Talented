@@ -7,6 +7,9 @@ local dataobj = ldb:NewDataObject(addonName, {
 })
 
 function dataobj:RefreshText()
+    -- Sub-lvl 15 have no talents
+    if not C_SpecializationInfo.CanPlayerUseTalentUI() then return end;
+
     local activePvEBuilds = Talented:GetActiveBuilds("PvE")
     local buildNamesString = nil
     -- If Build Names is Enabled
@@ -45,16 +48,25 @@ function dataobj:OnClick(button)
     local left = button == "LeftButton"
     local right = button == "RightButton"
 
+    if shift and left then 
+        ToggleTalentFrame(2) 
+        return
+    end
+
+    -- Sub-level 15 chars can't use talents
+    if not C_SpecializationInfo.CanPlayerUseTalentUI() then return end;
+
     if not shift and left then
         Talented:InitPvEDropdown()
     elseif not shift and right then
         Talented:InitPvPDropdown()
-    elseif shift and left then
-        ToggleTalentFrame(2)
     end
 end
 
 function dataobj:OnTooltipShow()
+    -- Sub-level 15 chars can't use talents
+    if not C_SpecializationInfo.CanPlayerUseTalentUI() then return end;
+
     self:AddLine("Talented")
     local tt = function(l, r)
         self:AddDoubleLine(l, r, 1,1,1, 0,1,0)

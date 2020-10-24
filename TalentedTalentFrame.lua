@@ -68,16 +68,6 @@ function Talented:InitPvEDropdown()
         tinsert(menu, btn)
     end
 
-    if not self.db.global.config.hideIcyVeins then
-        local icyBuild = Talented.IcyVeinsSpecs[tostring(specid)].build
-        tinsert(menu, {
-            text="Icy Veins",
-            value = icyBuild,
-            checked = compare(icyBuild, activeBuild),
-            func = function(btn) self.tools.LearnTalentString(btn.value) end
-        })
-    end
-
     tinsert(menu, {text='', isTitle=true, notCheckable=true})
 
     -- Save Button

@@ -12,5 +12,4 @@ TalentedTools.lua
 TalentedOptions.lua
 TalentedSaveFrame.lua
 TalentedTalentFrame.lua
-TalentedDefaultSpecs.lua
 TalentedLDB.lua

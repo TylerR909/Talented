@@ -7,7 +7,6 @@ function Talented:OnInitialize()
     self:InitOpts()
     self:SeedUI()
     self.ldb:Init()
-    self:IcyVersionCheck()
 end
 
 function Talented:SeedUI()
@@ -98,15 +97,6 @@ function Talented:GetActiveBuilds(key)
         end
     end
 
-    if not self.db.global.config.hideIcyVeins then
-        local icyBuild = Talented.IcyVeinsSpecs[tostring(specid)]
-        if key == "PvE" and compare(icyBuild.build, activeBuild) then
-            tinsert(activeBuilds, {
-                name = "Icy Veins",
-                build = icyBuild.build
-            })
-        end
-    end
     return activeBuilds
 end
 

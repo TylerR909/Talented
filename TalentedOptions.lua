@@ -9,8 +9,6 @@ local defaultOptions = {
             },
             squelch = 1, -- 0: Never, 1: When Talented Switches Talents, 2: Always
             hidePvPButton = false,
-            hideIcyVeins = false,
-            ignoreIcyCheck = false,
             disableSpellPush = true,
             debug = false
         },
@@ -53,29 +51,6 @@ local optionsTable = {
                 Talented.ldb:Refresh()
             end,
             get = function() return Talented.db.global.config.ldb.build end,
-        },
-        IcyVeinsHeader = {
-            name = "Icy Veins Builds",
-            order = order(),
-            type = "header"
-        },
-        HideIcyVeinsBuilds = {
-            name = "Hide Icy Veins Builds",
-            order = order(),
-            type = "toggle",
-            get = function() return Talented.db.global.config.hideIcyVeins end,
-            set = function(_, val) Talented.db.global.config.hideIcyVeins = val end
-        },
-        IgnoreIcyVersionCheck = {
-            name = "Ignore Version Check",
-            order = order(),
-            disabled = function() return Talented.db.global.config.hideIcyVeins end,
-            type = "toggle",
-            get = function() return 
-                Talented.db.global.config.ignoreIcyCheck
-                or Talented.db.global.config.hideIcyVeins
-            end,
-            set = function(_, val) Talented.db.global.config.ignoreIcyCheck = val end
         },
         OtherHeader = {
             name = "Other",

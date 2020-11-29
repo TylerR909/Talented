@@ -1,4 +1,4 @@
-## Interface: 90001
+## Interface: 90002
 ## Version: @project-version@
 ## Title: Talented
 ## Notes: Save and swap talent builds on the fly.

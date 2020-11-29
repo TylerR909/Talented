@@ -27,9 +27,10 @@ end
 function tools.LearnPvPTalentGroup(group)
     local squelch = Talented.db.global.config.squelch
     if squelch > 0 then Talented:AddSquelch() end
+    local active = Talented.tools.GetActivePvPTalentIDs()
 
     for slot=1, #group do
-        if group[slot] ~= 0 then 
+        if group[slot] ~= 0 and active[slot] ~= group[slot] then 
             LearnPvpTalent(group[slot], slot)
         end
     end

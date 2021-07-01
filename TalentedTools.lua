@@ -83,6 +83,24 @@ function tools.CompareTalentStrings(a,b)
     return true
 end
 
+function tools.traverseBuilds(builds)
+    local a = {}
+    for k in pairs(builds) do tinsert(a, k) end
+    table.sort(a, function(left,right)
+        return string.lower(left) < string.lower(right)
+    end)
+
+    local i = 0
+    local iter = function()
+        i = i+1
+        if a[i] == nil then return nil end
+        local build = builds[a[i]]
+        return build.name, build.build
+    end
+
+    return iter
+end
+
 function tools.ComparePvPTalentBuilds(a,b)
     if #a ~= #b then return false end
     local tala, talb;

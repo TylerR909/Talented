@@ -58,11 +58,11 @@ function Talented:InitPvEDropdown()
         { text=TALENTS, isTitle=true, notCheckable=true}
     }
 
-    for _,build in pairs(self.db.class[specid].PvE) do
+    for name,build in self.tools.traverseBuilds(self.db.class[specid].PvE) do
         local btn = {
-            text = build.name,
-            value = build.build,
-            checked = compare(build.build, activeBuild),
+            text = name,
+            value = build,
+            checked = compare(build, activeBuild),
             func = function(btn) self.tools.LearnTalentString(btn.value) end
         }
         tinsert(menu, btn)
@@ -102,11 +102,11 @@ function Talented:InitPvPDropdown()
         { text = PVP..' '..TALENTS, isTitle=true, notCheckable=true}
     }
 
-    for _,build in pairs(self.db.class[specid].PvP) do
+    for name,build in self.tools.traverseBuilds(self.db.class[specid].PvP) do
         local btn = {
-            text = build.name,
-            value = build.build,
-            checked = compare(build.build, activeBuild),
+            text = name,
+            value = build,
+            checked = compare(build, activeBuild),
             func = function(btn) self.tools.LearnPvPTalentGroup(btn.value) end
         }
         tinsert(menu, btn)

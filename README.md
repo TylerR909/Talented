@@ -1,3 +1,5 @@
+Given this Addon's core functionality of saving and swapping between talent builds is now baked into the default Dragonflight UI, this serves no purpose and I'll be archiving it.
+
 # Talented
 WoW Talent Build Addon
 
